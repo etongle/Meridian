@@ -1,0 +1,37 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Meridian</title>
+        <item>
+            <title>1.1.1</title>
+            <pubDate>Fri, 16 Oct 2026 09:17:26 -0400</pubDate>
+            <sparkle:version>3</sparkle:version>
+            <sparkle:shortVersionString>1.1.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# Meridian 1.1.1
+
+World clocks, full dates and local weather for your Mac.
+
+- **DMG installer:** open the disk image and drag Meridian.app onto Applications.
+- **One running instance:** opening Meridian again reveals the existing app. A process lock prevents duplicates even from copied bundles or direct launches, and releases automatically after a crash.
+- **Website:** the GitHub Pages homepage now opens the bilingual product site, with DMG as the preferred download.
+- Universal for Apple Silicon and Intel; macOS 14 or later. English is the default, with live Simplified Chinese switching.
+
+Download **Meridian-1.1.1-macOS.dmg** for first installation. The ZIP remains available for Sparkle automatic updates. SHA256SUMS covers both formats; the ZIP update archive is authenticated with Ed25519 signatures.
+
+This release uses ad-hoc Apple code signing and is **not notarized**. macOS may block first launch under its security policy. Sparkle signing authenticates updates and does not replace Apple notarization.
+
+**Noncommercial use only**, under PolyForm Noncommercial 1.0.0. See LICENSE and NOTICE. Third-party components keep their own licenses.
+
+## 简体中文
+
+新增 **DMG 拖拽安装包**，官网优先下载 DMG，ZIP 保留用于自动更新。
+
+应用**只运行一个实例**。重复打开会唤起已有应用，复制应用或直接启动也受进程锁保护；异常退出后锁会自动释放。
+
+已补全仓库简介、官网链接，并修正托管网站首页。仅限非商业使用；此版尚未经过 Apple 公证，首次打开可能受 macOS 安全策略限制。
+]]></description>
+            <enclosure url="https://github.com/etongle/Meridian/releases/download/v1.1.1/Meridian-1.1.1-macOS.zip" length="5571485" type="application/octet-stream" sparkle:edSignature="K8ulV2StjDcKeSD7eqTcvmzVEvkKr1e1LhVYHAdtzwNLRroFnOhUyAZF6IfImsJBL/GH/mLfBSOcRpY2pN3pCQ=="/>
+        </item>
+    </channel>
+</rss>
