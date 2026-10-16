@@ -219,6 +219,7 @@ struct RegionManagerView: View {
     @ObservedObject var store: ClockStore
     let done: () -> Void
     @FocusState private var searchFocused: Bool
+    @ViewState private var selectedArea: WorldArea = .all
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -242,7 +243,8 @@ struct RegionManagerView: View {
             .font(.system(size: 10)).foregroundStyle(.secondary)
             .padding(.horizontal, 39).padding(.bottom, 8)
 
-            VStack(spacing: 0) {
+            ScrollView {
+              VStack(spacing: 0) {
                 ForEach(Array(store.regions.enumerated()), id: \.element.id) { index, region in
                     HStack(spacing: 10) {
                         VStack(alignment: .leading, spacing: 3) {
@@ -275,7 +277,9 @@ struct RegionManagerView: View {
                     .padding(.horizontal, 15).frame(height: 48)
                     if index < store.regions.count - 1 { Divider().padding(.leading, 15) }
                 }
+              }
             }
+            .frame(height: min(CGFloat(store.regions.count) * 49 - 1, 195))
             .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 10))
             .padding(.horizontal, 24)
 
@@ -285,31 +289,49 @@ struct RegionManagerView: View {
                 Link(store.t("天气数据 · Open-Meteo"), destination: URL(string: "https://open-meteo.com/")!)
                     .font(.system(size: 10))
             }.padding(.horizontal, 24).padding(.top, 14)
-            Text(store.t("天气按时钟所示城市查询，本地使用系统时区对应城市。"))
-                .font(.system(size: 10)).foregroundStyle(.secondary)
-                .padding(.horizontal, 24).padding(.top, 5)
-
-            TextField(store.t("搜索城市或时区，例如：东京、London"), text: $store.search)
+            TextField(store.t("搜索城市、国家或时区，例如：东京、France"), text: $store.search)
                 .textFieldStyle(.roundedBorder)
                 .focused($searchFocused)
-                .accessibilityLabel(store.t("搜索城市或时区"))
-                .padding(.horizontal, 24).padding(.top, 20).padding(.bottom, 8)
+                .accessibilityLabel(store.t("搜索城市、国家或时区"))
+                .padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 8)
 
-            let results = CityCatalog.search(store.search)
+            let results = CityCatalog.search(store.search, area: selectedArea, language: store.language)
+            HStack {
+                Picker(store.t("浏览"), selection: $selectedArea) {
+                    ForEach(WorldArea.allCases) { area in Text(store.t(area.title)).tag(area) }
+                }.pickerStyle(.menu).frame(width: 225)
+                    .accessibilityLabel(store.t("按地区筛选"))
+                Spacer()
+                Text("\(results.count) \(store.t("个可选地区"))")
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
+            }.padding(.horizontal, 24).padding(.bottom, 6)
+            let sections = CityCatalog.sections(for: results,
+                showPopular: selectedArea == .all && store.search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             ScrollView {
-                LazyVStack(spacing: 0) {
+                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
                     if results.isEmpty {
-                        Text(store.t("没有找到这个城市，试试英文城市名或时区名称。"))
+                        Text(store.t("没有匹配的地区，请尝试城市、国家或时区名称。"))
                             .font(.system(size: 12)).foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity).padding(.vertical, 35)
+                        if selectedArea != .all {
+                            Button(store.t("搜索全球地区")) { selectedArea = .all }
+                        }
                     }
-                    ForEach(results, id: \.self) { identifier in
+                    ForEach(sections) { section in
+                      Section {
+                       ForEach(section.identifiers, id: \.self) { identifier in
                         HStack {
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(CityCatalog.name(for: identifier, language: store.language)).font(.system(size: 13))
-                                Text(identifier).font(.system(size: 10)).foregroundStyle(.secondary)
+                                Text([CityCatalog.country(for: identifier, language: store.language), identifier]
+                                    .compactMap { $0 }.joined(separator: " · "))
+                                    .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
+                                    .help(identifier)
                             }
                             Spacer()
+                            Text(store.snapshot(ClockRegion(id: identifier)).offsetLabel)
+                                .font(.system(size: 10).monospacedDigit()).foregroundStyle(.secondary)
+                                .frame(width: 60, alignment: .trailing)
                             if store.contains(identifier) {
                                 Label(store.t("已添加"), systemImage: "checkmark").font(.system(size: 11)).foregroundStyle(.secondary)
                             } else {
@@ -319,9 +341,21 @@ struct RegionManagerView: View {
                             }
                         }.padding(.horizontal, 8).frame(height: 48)
                         Divider()
+                       }
+                      } header: {
+                        HStack {
+                            Text(store.t(section.area.title))
+                            Spacer()
+                            Text("\(section.identifiers.count)").monospacedDigit()
+                        }
+                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                        .padding(.horizontal, 8).padding(.top, 12).padding(.bottom, 8)
+                        .background(Color(nsColor: .windowBackgroundColor))
+                      }
                     }
                 }.padding(.horizontal, 24)
             }.frame(minHeight: 120, maxHeight: .infinity)
+                .id("\(selectedArea.rawValue):\(store.search)")
 
             Divider()
             HStack {

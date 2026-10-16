@@ -10,6 +10,7 @@ Meridian is a native macOS desktop and menu bar world clock. Keep the places you
 ## Features
 
 - **Full dates, everywhere.** Every region shows the year, month, day and weekday. Previous-day and next-day labels make date changes clear.
+- **Worldwide selection.** Browse 400+ supported time zones and representative cities by geographical region. Search by city, country or time zone in English or Simplified Chinese.
 - **Your clocks, your layout.** Add up to six regions. Choose desktop and menu bar clocks independently, including a single clock or several.
 - **One running instance.** Opening Meridian again brings back the existing app. A process lock also prevents duplicates from copied app bundles or direct launches.
 - **A quiet desktop presence.** A dark horizontal widget that you can drag, pin above other windows, lock or hide.
@@ -62,7 +63,7 @@ The checks cover date changes, daylight saving transitions, year boundaries, fra
 [Publishing guide](RELEASING.md) explains the signed update workflow, repository secrets and optional Developer ID signing. DMG installers, ZIP update archives, `appcast.xml`, checksums and license notices are published together on GitHub Releases. The same signed files are mirrored to [GitHub Packages](https://github.com/etongle/Meridian/pkgs/container/meridian) as an OCI artifact; this stores the native Mac app and is not a runnable container.
 
 ```sh
-oras pull ghcr.io/etongle/meridian:1.1.1
+oras pull ghcr.io/etongle/meridian:1.2.0
 ```
 
 The first release uses ad-hoc Apple code signing and is not notarized. macOS may block first launch under its security policy. Sparkle signing authenticates updates and does not replace Apple notarization.
@@ -80,5 +81,7 @@ Meridian is source-available under the [PolyForm Noncommercial License 1.0.0](LI
 The license covers the original application, source code, website and project artwork. Third-party components keep their own licenses. See [NOTICE](NOTICE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Third-party notices
+
+The worldwide directory is generated from IANA time-zone metadata and Unicode CLDR city names. Search works offline; time-zone rules follow macOS.
 
 Meridian uses [Sparkle](https://sparkle-project.org/) under its included license and [Open-Meteo](https://open-meteo.com/) for weather data. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

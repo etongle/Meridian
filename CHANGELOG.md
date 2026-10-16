@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0 — 2026-10-16
+
+- Browse 400+ supported worldwide time zones, grouped by geographical region.
+- Add English/Chinese city, country and time-zone search, including common legacy names.
+- Display country names and current UTC offsets in the picker.
+- Add representative coordinates for global weather without a separate geocoding lookup.
+- Preserve distinct cities with linked clock rules while avoiding obsolete-name duplicates.
+- Bundle IANA and Unicode CLDR source data and license notices.
+
 ## 1.1.1 — 2026-10-16
 
 - Add a DMG installer with an Applications shortcut; prefer DMG downloads on the website.

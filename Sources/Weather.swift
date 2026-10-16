@@ -121,6 +121,8 @@ enum WeatherClient {
         let coordinate: WeatherCoordinate
         if let known = coordinates[zone] {
             coordinate = known
+        } else if let place = CityCatalog.location(for: zone) {
+            coordinate = .init(latitude: place.latitude, longitude: place.longitude)
         } else {
             guard let name = cityQuery(for: zone) else { throw WeatherError.unavailable }
             var query = URLComponents(string: "https://geocoding-api.open-meteo.com/v1/search")!

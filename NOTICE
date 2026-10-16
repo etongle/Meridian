@@ -6,4 +6,5 @@ provided under the PolyForm Noncommercial License 1.0.0 in LICENSE.
 Commercial use is not granted by this license.
 
 Third-party components remain under their own licenses. See
-THIRD_PARTY_NOTICES.md and Sparkle-LICENSE.txt in the application bundle.
+THIRD_PARTY_NOTICES.md, Sparkle-LICENSE.txt, CLDR-LICENSE.txt and
+TimeZones-LICENSE.txt in the application bundle.

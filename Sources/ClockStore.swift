@@ -39,7 +39,8 @@ final class ClockStore: ObservableObject {
            let saved = try? JSONDecoder().decode([ClockRegion].self, from: data) {
             var seen = Set(["system"])
             loadedRegions = [.local] + saved.filter {
-                !$0.followsSystem && TimeZone(identifier: $0.id) != nil && seen.insert($0.id).inserted
+                !$0.followsSystem && TimeZone(identifier: $0.id) != nil
+                    && seen.insert(CityCatalog.canonicalIdentifier($0.id)).inserted
             }.prefix(5)
         } else {
             loadedRegions = CityCatalog.defaults(local: localZone)
@@ -93,7 +94,9 @@ final class ClockStore: ObservableObject {
     }
 
     func contains(_ identifier: String) -> Bool {
-        identifier == localZone.identifier || regions.contains { $0.id == identifier }
+        let canonical = CityCatalog.canonicalIdentifier(identifier)
+        return canonical == CityCatalog.canonicalIdentifier(localZone.identifier)
+            || regions.contains { !$0.followsSystem && CityCatalog.canonicalIdentifier($0.id) == canonical }
     }
 
     func add(_ identifier: String) {

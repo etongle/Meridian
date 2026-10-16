@@ -58,13 +58,21 @@ enum CityCatalog {
     static let popular = ["America/New_York", "Europe/London", "Asia/Shanghai",
         "Asia/Tokyo", "America/Los_Angeles", "Asia/Singapore", "Europe/Paris",
         "Australia/Sydney", "Asia/Hong_Kong", "Asia/Dubai", "Asia/Kolkata",
-        "Pacific/Auckland"]
+        "Pacific/Auckland", "America/Sao_Paulo", "America/Mexico_City",
+        "Europe/Berlin", "Africa/Cairo", "Africa/Johannesburg", "Africa/Lagos",
+        "Africa/Nairobi", "Asia/Seoul", "Asia/Bangkok", "Pacific/Honolulu",
+        "Europe/Moscow", "America/Toronto"]
 
     static func name(for identifier: String, language: AppLanguage = .english) -> String {
+        let canonical = canonicalIdentifier(identifier)
         if language == .simplifiedChinese, let name = names[identifier] { return name }
+        if language == .simplifiedChinese {
+            if let name = names[canonical] ?? WorldRegionData.zhNames[canonical] { return name }
+        }
         if ["Asia/Kolkata", "Asia/Calcutta"].contains(identifier) { return "New Delhi" }
         if ["UTC", "Etc/UTC", "GMT"].contains(identifier) { return "UTC" }
-        return identifier.split(separator: "/").last.map {
+        if let name = WorldRegionData.enNames[canonical] { return name }
+        return canonical.split(separator: "/").last.map {
             String($0).replacingOccurrences(of: "_", with: " ")
         } ?? identifier
     }
@@ -72,23 +80,12 @@ enum CityCatalog {
     static func defaults(local: TimeZone) -> [ClockRegion] {
         var result: [ClockRegion] = [.local]
         for identifier in ["Europe/London", "Asia/Shanghai", "Asia/Tokyo", "America/New_York", "Europe/Paris"] {
-            guard result.count < 4, identifier != local.identifier else { continue }
+            guard result.count < 4, canonicalIdentifier(identifier) != canonicalIdentifier(local.identifier) else { continue }
             result.append(ClockRegion(id: identifier))
         }
         return result
     }
 
-    static func search(_ query: String) -> [String] {
-        let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        if text.isEmpty { return popular }
-        return TimeZone.knownTimeZoneIdentifiers.filter { identifier in
-            identifier.localizedCaseInsensitiveContains(text)
-            || name(for: identifier).localizedCaseInsensitiveContains(text)
-            || (names[identifier] ?? "").localizedCaseInsensitiveContains(text)
-        }.sorted {
-            name(for: $0).localizedStandardCompare(name(for: $1)) == .orderedAscending
-        }
-    }
 }
 
 struct ClockSnapshot: Equatable, Sendable {
