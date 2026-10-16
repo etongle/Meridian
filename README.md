@@ -13,7 +13,7 @@ Meridian is a native macOS desktop and menu bar world clock. Keep the places you
 - **Worldwide selection.** Browse 400+ supported time zones and representative cities by geographical region. Search by city, country or time zone in English or Simplified Chinese.
 - **Your clocks, your layout.** Add up to six regions. Choose desktop and menu bar clocks independently, including a single clock or several.
 - **One running instance.** Opening Meridian again brings back the existing app. A process lock also prevents duplicates from copied app bundles or direct launches.
-- **A quiet desktop presence.** A dark horizontal widget that you can drag, pin above other windows, lock or hide.
+- **A quiet desktop presence.** Drag the title bar to position the widget. It snaps to screen edges when released. Pin it above other windows, lock it or hide it.
 - **One-click overview.** A menu bar panel shows all configured clocks. The panel stays within the screen, with a scrollable clock list on smaller displays.
 - **Local weather.** Weather icons and Celsius temperatures refresh every 15 minutes. Missing and outdated data are clearly labeled.
 - **English by default.** Switch between English and Simplified Chinese in Settings, without restarting.
@@ -28,8 +28,9 @@ Requires **macOS 14 or later**. Release builds are universal for Apple Silicon a
 1. Download the **DMG installer** from [Releases](https://github.com/etongle/Meridian/releases).
 2. Open the DMG, drag `Meridian.app` onto **Applications**, then open it from Applications.
 3. Click **+** to add, remove and reorder clocks. Check **Desktop** and **Menu bar** separately.
-4. Click the application icon in the menu bar to see every region. **More** includes position controls, update checks and Quit.
-5. Open **Settings** to change the language, weather and update preferences.
+4. Click the application icon in the menu bar, then **Open** to open or bring the desktop panel forward. Close the desktop panel with **×** to send it back to the menu bar; the app keeps running.
+5. Drag the **Meridian title bar** to move the panel; release near a screen edge to snap. Under **More**, use **Find panel (reset position)** to recover it, or change **Snap to screen edges**, **Lock position** and **Always on top**.
+6. Open **Settings** to change the language, weather and update preferences.
 
 The local clock follows your system time zone. Dates use `YYYY/MM/DD`; times use the 24-hour clock. Settings and window position are saved automatically. The original prototype’s bundle identifier is retained so existing preferences continue to work.
 
@@ -56,7 +57,7 @@ To compile a universal application:
 MERIDIAN_ARCHS="arm64 x86_64" zsh build.sh
 ```
 
-The checks cover date changes, daylight saving transitions, year boundaries, fractional time zones, city search, weather decoding, localization, update configuration and dropdown placement on small or secondary screens.
+The checks cover date changes, daylight saving transitions, year boundaries, fractional time zones, city search, weather decoding, localization, update configuration, dropdown placement, edge snapping and recovery on secondary screens.
 
 ## Updates and releases
 

@@ -9,6 +9,7 @@ final class ClockStore: ObservableObject {
     @Published var localZone: TimeZone
     @Published var alwaysOnTop: Bool { didSet { save() } }
     @Published var positionLocked: Bool { didSet { save() } }
+    @Published var snapToEdges: Bool { didSet { save() } }
     @Published var desktopRegionIDs: Set<String> { didSet { save() } }
     @Published var statusRegionIDs: Set<String> { didSet { save() } }
     @Published var desktopVisible: Bool { didSet { save() } }
@@ -34,6 +35,7 @@ final class ClockStore: ObservableObject {
         self.localZone = localZone
         self.alwaysOnTop = persistent && UserDefaults.standard.bool(forKey: "alwaysOnTop")
         self.positionLocked = persistent && UserDefaults.standard.bool(forKey: "positionLocked")
+        self.snapToEdges = persistent ? (UserDefaults.standard.object(forKey: "snapToEdges") as? Bool ?? true) : true
         let loadedRegions: [ClockRegion]
         if persistent, let data = UserDefaults.standard.data(forKey: "regions"),
            let saved = try? JSONDecoder().decode([ClockRegion].self, from: data) {
@@ -80,6 +82,7 @@ final class ClockStore: ObservableObject {
         if let data = try? JSONEncoder().encode(regions) { persistence.set(data, forKey: "regions") }
         persistence.set(alwaysOnTop, forKey: "alwaysOnTop")
         persistence.set(positionLocked, forKey: "positionLocked")
+        persistence.set(snapToEdges, forKey: "snapToEdges")
         persistence.set(Array(desktopRegionIDs), forKey: "desktopRegionIDs")
         persistence.set(Array(statusRegionIDs), forKey: "statusRegionIDs")
         persistence.set(desktopVisible, forKey: "desktopVisible")

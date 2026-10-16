@@ -8,6 +8,7 @@ swiftc -swift-version 5 -parse-as-library \
   -module-cache-path "$BUILD_DIR/ModuleCache" \
   "$PROJECT_DIR/Sources/Localization.swift" \
   "$PROJECT_DIR/Sources/DropdownGeometry.swift" \
+  "$PROJECT_DIR/Sources/DesktopGeometry.swift" \
   "$PROJECT_DIR/Sources/UpdateConfiguration.swift" \
   "$PROJECT_DIR/Sources/ClockModel.swift" \
   "$PROJECT_DIR/Sources/WorldRegions.swift" \

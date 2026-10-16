@@ -35,7 +35,7 @@ private struct HoverButton: View {
             Image(systemName: symbol)
                 .font(.system(size: 16, weight: .regular))
                 .foregroundStyle(hovered ? .white : Palette.quiet)
-                .frame(width: 32, height: 30)
+                .frame(width: 30, height: 30)
                 .background(.white.opacity(hovered ? 0.1 : 0), in: RoundedRectangle(cornerRadius: 7))
                 .contentShape(Rectangle())
         }
@@ -55,16 +55,28 @@ struct WorldClockView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text(store.t("世界时钟"))
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.94))
-                    .allowsHitTesting(false)
-                Spacer()
+            HStack(spacing: 0) {
+                HStack(spacing: 7) {
+                    Image(systemName: store.positionLocked ? "lock.fill" : "line.3.horizontal")
+                        .font(.system(size: 10)).foregroundStyle(Palette.quiet)
+                    Text(store.t("世界时钟"))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.94))
+                    Spacer(minLength: 0)
+                    if store.panelSize.width >= 360 {
+                        Text(store.t(store.positionLocked ? "已锁定" : "拖动"))
+                            .font(.system(size: 10)).foregroundStyle(Palette.quiet)
+                            .padding(.trailing, 12)
+                    }
+                }
+                .frame(maxWidth: .infinity, minHeight: 35)
+                .overlay(DesktopDragArea(enabled: !store.positionLocked,
+                    hint: store.t(store.positionLocked ? "位置已锁定，可在右键菜单解锁。" : (store.snapToEdges ? "拖动标题栏可移动，靠近屏幕边缘自动吸附。" : "拖动标题栏可移动。"))))
                 HoverButton(symbol: "globe", label: store.t("查看全部时钟"), action: showStatus)
                 HoverButton(symbol: "plus", label: store.t("管理地区"), action: manage)
+                HoverButton(symbol: "xmark", label: store.t("收起到状态栏")) { store.desktopVisible = false }
             }
-            .padding(.leading, 20)
+            .padding(.leading, 14)
             .padding(.trailing, 8)
             .frame(height: 35)
 
@@ -119,6 +131,7 @@ struct WorldClockView: View {
             Button(store.t("查看状态栏时钟"), action: showStatus)
             Toggle(store.t("始终置顶"), isOn: $store.alwaysOnTop)
             Toggle(store.t("锁定位置"), isOn: $store.positionLocked)
+            Toggle(store.t("吸附屏幕边缘"), isOn: $store.snapToEdges)
             Button(store.t("重置位置"), action: resetPosition)
             Button(store.t("隐藏桌面组件")) { store.desktopVisible = false }
             Divider()
@@ -411,10 +424,12 @@ struct MenuClocksView: View {
 }
 
 struct StatusPopoverView: View {
+    static let chromeHeight: CGFloat = 206
     @ObservedObject var store: ClockStore
     @ObservedObject var updates: UpdateController
     let clockListHeight: CGFloat
     let manage: () -> Void
+    let showDesktop: () -> Void
     let resetPosition: () -> Void
     let quit: () -> Void
 
@@ -425,13 +440,25 @@ struct StatusPopoverView: View {
                 Spacer()
                 Button(action: manage) { Image(systemName: "slider.horizontal.3") }
                     .buttonStyle(.borderless).accessibilityLabel(store.t("管理地区"))
-            }.padding(.horizontal, 17).padding(.vertical, 12)
+            }.padding(.horizontal, 17).frame(height: 40)
+            VStack(spacing: 6) {
+                HStack {
+                    Button(action: showDesktop) {
+                        Label(store.t("打开"), systemImage: "rectangle.on.rectangle")
+                            .font(.system(size: 12, weight: .medium))
+                            .frame(maxWidth: .infinity).frame(height: 20)
+                    }.buttonStyle(.borderedProminent)
+                }
+                Text(store.t(store.positionLocked ? "位置已锁定，可在右键菜单解锁。" : (store.snapToEdges ? "拖动标题栏可移动，靠近屏幕边缘自动吸附。" : "拖动标题栏可移动。")))
+                    .font(.system(size: 10)).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading).frame(height: 26, alignment: .topLeading)
+            }.padding(.horizontal, 13).frame(height: 76)
             Divider()
             ScrollView { MenuClocksView(store: store) }
                 .frame(height: clockListHeight)
             Divider()
             HStack {
-                Button(store.desktopVisible ? store.t("隐藏桌面") : store.t("显示桌面")) { store.desktopVisible.toggle() }
+                Text(store.t("状态栏"))
                 Spacer()
                 Menu(store.t("状态栏显示")) {
                     ForEach(store.regions) { region in
@@ -444,7 +471,7 @@ struct StatusPopoverView: View {
                     Button(store.t("显示全部")) { store.statusRegionIDs = Set(store.regions.map(\.id)) }
                     Button(store.t("仅显示图标")) { store.statusRegionIDs = [] }
                 }.menuStyle(.borderlessButton).fixedSize()
-            }.font(.system(size: 12)).buttonStyle(.borderless).padding(15)
+            }.font(.system(size: 12)).buttonStyle(.borderless).padding(.horizontal, 15).frame(height: 36)
             HStack {
                 Toggle(store.t("天气"), isOn: $store.showWeather).toggleStyle(.checkbox)
                 Spacer()
@@ -452,15 +479,16 @@ struct StatusPopoverView: View {
                 Menu(store.t("更多")) {
                     Toggle(store.t("始终置顶"), isOn: $store.alwaysOnTop)
                     Toggle(store.t("锁定位置"), isOn: $store.positionLocked)
-                    Button(store.t("重置位置"), action: resetPosition)
+                    Toggle(store.t("吸附屏幕边缘"), isOn: $store.snapToEdges)
+                    Button(store.t("找回面板（重置位置）"), action: resetPosition)
                     Divider()
                     Button(store.t("检查更新…")) { updates.check(language: store.language) }
                     Button(store.t("退出世界时钟"), action: quit)
                 }.menuStyle(.borderlessButton).fixedSize()
-            }.font(.system(size: 11)).buttonStyle(.borderless).padding(.horizontal, 15).padding(.bottom, 12)
+            }.font(.system(size: 11)).buttonStyle(.borderless).padding(.horizontal, 15).frame(height: 30)
             Link(store.t("天气数据 · Open-Meteo"), destination: URL(string: "https://open-meteo.com/")!)
-                .font(.system(size: 9)).foregroundStyle(.secondary).padding(.bottom, 10)
-        }.frame(width: 286, height: clockListHeight + 152)
+                .font(.system(size: 9)).foregroundStyle(.secondary).frame(height: 22)
+        }.frame(width: 286, height: clockListHeight + Self.chromeHeight)
             .background(Color(red: 0.12, green: 0.135, blue: 0.16).opacity(0.96))
             .clipShape(RoundedRectangle(cornerRadius: 13))
             .overlay { RoundedRectangle(cornerRadius: 13).strokeBorder(.white.opacity(0.16), lineWidth: 0.5) }

@@ -2,6 +2,11 @@
 
 ## 1.2.0 — 2026-10-16
 
+- Add a native draggable title bar, hand cursor and visible drag/lock hints.
+- Snap the desktop panel to screen edges on release, with an optional switch and multi-display recovery.
+- Add a prominent Open action, close-to-menu-bar behavior, and Find panel (reset position).
+- Reveal desktop clocks above other windows until the next outside click, respecting Always on top.
+
 - Browse 400+ supported worldwide time zones, grouped by geographical region.
 - Add English/Chinese city, country and time-zone search, including common legacy names.
 - Display country names and current UTC offsets in the picker.

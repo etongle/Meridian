@@ -5,8 +5,42 @@ import SwiftUI
 private let reopenMeridian = Notification.Name("org.codex.worldclock.reopen")
 
 final class DesktopPanel: NSPanel {
+    var dragBegan: (() -> Void)?
+    var dragEnded: (() -> Void)?
+    var closeRequested: (() -> Void)?
+    private var dragStart: (mouse: NSPoint, origin: NSPoint)?
+    private var movedDuringDrag = false
+    var isDragging: Bool { dragStart != nil }
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
+    override func performClose(_ sender: Any?) { closeRequested?() }
+
+    override func sendEvent(_ event: NSEvent) {
+        if event.type == .leftMouseDown, isMovable,
+           event.locationInWindow.y >= frame.height - 35,
+           event.locationInWindow.x < frame.width - 98 {
+            dragStart = (convertPoint(toScreen: event.locationInWindow), frame.origin)
+            movedDuringDrag = false
+            dragBegan?()
+            return
+        }
+        if let start = dragStart {
+            if event.type == .leftMouseDragged {
+                let mouse = convertPoint(toScreen: event.locationInWindow)
+                guard movedDuringDrag || hypot(mouse.x - start.mouse.x, mouse.y - start.mouse.y) >= 3 else { return }
+                movedDuringDrag = true
+                setFrameOrigin(NSPoint(x: start.origin.x + mouse.x - start.mouse.x,
+                    y: start.origin.y + mouse.y - start.mouse.y))
+                return
+            }
+            if event.type == .leftMouseUp {
+                dragStart = nil
+                if movedDuringDrag { dragEnded?() }
+                return
+            }
+        }
+        super.sendEvent(event)
+    }
 }
 
 final class ClockDropdownPanel: NSPanel {
@@ -55,6 +89,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var localClickMonitor: Any?
     private var globalClickMonitor: Any?
     private var reopenObserver: NSObjectProtocol?
+    private var desktopRevealed = false
 
     init(options: LaunchOptions) {
         self.options = options
@@ -96,10 +131,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        store.desktopVisible = true
-        panel?.orderFrontRegardless()
+        showDesktop()
         return true
     }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
     private func setupPanel() {
         panel = DesktopPanel(contentRect: NSRect(origin: .zero, size: store.panelSize),
@@ -111,10 +147,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         panel.hasShadow = true
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
-        panel.isMovableByWindowBackground = true
+        panel.isMovableByWindowBackground = false
         panel.becomesKeyOnlyIfNeeded = true
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
         panel.appearance = NSAppearance(named: .darkAqua)
+        panel.dragBegan = { [weak self] in self?.statusWindow?.orderOut(nil) }
+        panel.dragEnded = { [weak self] in self?.finishDesktopDrag() }
+        panel.closeRequested = { [weak self] in self?.store.desktopVisible = false }
         panel.contentView = NSHostingView(rootView: WorldClockView(store: store,
             manage: { [weak self] in self?.showManager() },
             showStatus: { [weak self] in self?.showStatusMenu(nil) },
@@ -126,7 +165,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             panel.setFrameOrigin(NSPointFromString(position))
             keepOnScreen()
         } else {
-            resetPosition()
+            placeAtDefaultPosition()
         }
         updateWindowBehavior()
         panel.delegate = self
@@ -139,6 +178,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let viewClocks = app.addItem(withTitle: store.t("查看状态栏时钟"), action: #selector(showStatusMenu(_:)), keyEquivalent: "t")
         viewClocks.target = self
         viewClocks.keyEquivalentModifierMask = [.command, .shift]
+        let desktop = app.addItem(withTitle: store.t("显示桌面时钟"), action: #selector(showDesktop), keyEquivalent: "d")
+        desktop.target = self
+        desktop.keyEquivalentModifierMask = [.command, .shift]
         app.addItem(withTitle: store.t("管理地区…"), action: #selector(showManager), keyEquivalent: ",").target = self
         app.addItem(withTitle: store.t("检查更新…"), action: #selector(checkForUpdates), keyEquivalent: "").target = self
         app.addItem(.separator())
@@ -172,6 +214,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         statusItem.button?.target = self
         statusItem.button?.action = #selector(showStatusMenu(_:))
+        statusItem.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        installClickMonitors()
         updateStatusBar()
     }
 
@@ -193,7 +237,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         statusItem.button?.toolTip = "Meridian\n" + store.regions.map {
             let clock = store.snapshot($0)
             return "\(clock.city)  \(clock.date) \(clock.weekday)  \(clock.time)"
-        }.joined(separator: "\n")
+        }.joined(separator: "\n") + "\n\n" + store.t("点击展开菜单，选择“打开”显示桌面时钟。")
         statusItem.button?.setAccessibilityLabel(title.isEmpty ? store.t("世界时钟菜单") : "Meridian, \(title)")
         if statusWindow?.isVisible == true { layoutStatusWindow() }
         if options.preview, let path = options.snapshot {
@@ -207,20 +251,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         layoutStatusWindow()
         NSApp.activate(ignoringOtherApps: true)
         statusWindow?.makeKeyAndOrderFront(nil)
+        if options.preview, let path = options.snapshot {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in self?.capture(to: path) }
+        }
+    }
+
+    private func installClickMonitors() {
         if localClickMonitor == nil {
             localClickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
                 guard let self else { return event }
                 if event.window !== self.statusWindow && event.window !== self.statusItem.button?.window {
                     self.statusWindow?.orderOut(nil)
                 }
+                if event.window !== self.panel && event.window !== self.statusWindow
+                    && event.window !== self.statusItem.button?.window && event.window !== self.manager {
+                    self.endDesktopReveal()
+                }
                 return event
             }
             globalClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
                 self?.statusWindow?.orderOut(nil)
+                self?.endDesktopReveal()
             }
-        }
-        if options.preview, let path = options.snapshot {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in self?.capture(to: path) }
         }
     }
 
@@ -232,10 +284,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let screen = NSScreen.screens.first { $0.frame.intersects(anchor) } ?? panel.screen ?? NSScreen.main
         guard let screen else { return }
         let bounds = screen.visibleFrame.insetBy(dx: 8, dy: 8)
-        let listHeight = min(CGFloat(store.regions.count * (store.showWeather ? 72 : 55) + 10), max(80, bounds.height - 152))
-        let size = NSSize(width: 286, height: listHeight + 152)
+        let chromeHeight = StatusPopoverView.chromeHeight
+        let listHeight = min(CGFloat(store.regions.count * (store.showWeather ? 72 : 55) + 10), max(0, bounds.height - chromeHeight))
+        let size = NSSize(width: 286, height: listHeight + chromeHeight)
         let root = StatusPopoverView(store: store, updates: updates, clockListHeight: listHeight,
             manage: { [weak self] in self?.statusWindow?.orderOut(nil); self?.showManager() },
+            showDesktop: { [weak self] in self?.showDesktop() },
             resetPosition: { [weak self] in self?.resetPosition() }, quit: { NSApp.terminate(nil) })
         if statusWindow == nil {
             let window = ClockDropdownPanel(contentRect: NSRect(origin: .zero, size: size),
@@ -286,6 +340,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         store.$showWeather.dropFirst().receive(on: RunLoop.main).sink { [weak self] _ in self?.updateStatusBar() }.store(in: &subscriptions)
         store.$desktopVisible.dropFirst().receive(on: RunLoop.main).sink { [weak self] visible in
             if visible { self?.panel.orderFrontRegardless() } else { self?.panel.orderOut(nil) }
+            if !visible { self?.endDesktopReveal() }
         }.store(in: &subscriptions)
         store.$alwaysOnTop.dropFirst().receive(on: RunLoop.main).sink { [weak self] _ in
             self?.updateWindowBehavior()
@@ -320,8 +375,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func updateWindowBehavior() {
-        panel.isMovableByWindowBackground = !store.positionLocked
-        if store.alwaysOnTop || options.preview || options.snapshot != nil {
+        panel.isMovable = !store.positionLocked
+        panel.isMovableByWindowBackground = false
+        if store.alwaysOnTop || desktopRevealed || options.preview || options.snapshot != nil {
             panel.level = .floating
         } else {
             panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.desktopIconWindow)) + 1)
@@ -329,24 +385,56 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func keepOnScreen() {
-        guard let frame = (panel.screen ?? NSScreen.main)?.visibleFrame else { return }
-        var origin = panel.frame.origin
-        origin.x = min(max(origin.x, frame.minX + 16), frame.maxX - panel.frame.width - 16)
-        origin.y = min(max(origin.y, frame.minY + 16), frame.maxY - panel.frame.height - 16)
-        panel.setFrameOrigin(origin)
+        guard let screen = DesktopGeometry.screen(for: panel.frame, in: NSScreen.screens.map(\.visibleFrame)) else { return }
+        panel.setFrameOrigin(DesktopGeometry.origin(for: panel.frame, in: screen, snap: false))
+    }
+
+    private func finishDesktopDrag() {
+        updateLayout()
+        guard let screen = DesktopGeometry.screen(for: panel.frame, in: NSScreen.screens.map(\.visibleFrame)) else { return }
+        panel.setFrameOrigin(DesktopGeometry.origin(for: panel.frame, in: screen, snap: store.snapToEdges))
+        savePanelPosition()
+        if options.preview, let path = options.snapshot { capture(to: path) }
     }
 
     func windowDidMove(_ notification: Notification) {
         guard (notification.object as? NSWindow) === panel,
-              !applyingLayout,
-              options.snapshot == nil, options.fixedInstant == nil, !options.preview else { return }
+              !applyingLayout else { return }
+        savePanelPosition()
+        if statusWindow?.isVisible == true && !statusFromMenuBar { layoutStatusWindow() }
+    }
+
+    private func savePanelPosition() {
+        guard options.snapshot == nil, options.fixedInstant == nil, !options.preview else { return }
         UserDefaults.standard.set(NSStringFromPoint(panel.frame.origin), forKey: "panelPosition")
     }
 
     @objc private func resetPosition() {
-        guard let screen = (panel.screen ?? NSScreen.main)?.visibleFrame else { return }
+        placeAtDefaultPosition()
+        showDesktop()
+    }
+
+    private func placeAtDefaultPosition() {
+        guard let screen = (NSScreen.main ?? panel.screen)?.visibleFrame else { return }
         panel.setFrameOrigin(NSPoint(x: screen.midX - panel.frame.width / 2,
             y: screen.maxY - panel.frame.height - 75))
+        updateLayout()
+    }
+
+    @objc private func showDesktop() {
+        guard panel != nil else { return }
+        statusWindow?.orderOut(nil)
+        store.desktopVisible = true
+        desktopRevealed = true
+        updateWindowBehavior()
+        keepOnScreen()
+        panel.orderFrontRegardless()
+    }
+
+    private func endDesktopReveal() {
+        guard desktopRevealed else { return }
+        desktopRevealed = false
+        updateWindowBehavior()
     }
 
     @objc private func toggleVisible() {
@@ -405,6 +493,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 "statusWindowVisible": statusItem.button?.window?.isVisible ?? false,
                 "statusWindowFrame": (statusItem.button?.window).map { NSStringFromRect($0.frame) } ?? "none",
                 "dropdownShown": statusWindow?.isVisible ?? false,
+                "desktopVisible": store.desktopVisible,
+                "positionLocked": store.positionLocked,
+                "snapToEdges": store.snapToEdges,
+                "dragTracking": panel.isDragging,
+                "panelFrame": NSStringFromRect(panel.frame),
+                "screenVisibleFrame": panel.screen.map { NSStringFromRect($0.visibleFrame) } ?? "none",
                 "desktopRegionIDs": store.desktopRegions.map(\.id),
                 "statusRegionIDs": store.statusRegions.map(\.id),
                 "panelPosition": NSStringFromPoint(panel.frame.origin)]
