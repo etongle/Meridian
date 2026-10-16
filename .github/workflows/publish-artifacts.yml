@@ -1,0 +1,46 @@
+name: Publish signed artifacts
+on:
+  push:
+    branches: ['release-artifacts/**']
+    paths: ['ReleaseArtifacts/**']
+permissions:
+  contents: write
+  packages: write
+concurrency:
+  group: publish-signed-artifacts
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: macos-15
+    outputs:
+      tag: ${{ steps.metadata.outputs.tag }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate source and pre-signed archive
+        id: metadata
+        run: |
+          python3 scripts/verify-release-artifacts.py ReleaseArtifacts
+          cd ReleaseArtifacts
+          shasum -a 256 -c SHA256SUMS
+          PUBLIC_KEY=$(python3 -c 'import json; print(json.load(open("../Config/release.json"))["sparklePublicKey"])')
+          VERSION=$(python3 -c 'import json; print(json.load(open("../Config/release.json"))["version"])')
+          swift ../scripts/verify-appcast.swift appcast.xml "Meridian-$VERSION-macOS.zip" "$PUBLIC_KEY"
+          ditto -x -k "Meridian-$VERSION-macOS.zip" ../unpacked
+          codesign --verify --deep --strict ../unpacked/Meridian.app
+          lipo -verify_arch arm64 x86_64 ../unpacked/Meridian.app/Contents/MacOS/Meridian
+      - name: Publish release
+        env:
+          RELEASE_TAG: ${{ steps.metadata.outputs.tag }}
+          SOURCE_COMMIT: ${{ steps.metadata.outputs.source }}
+        run: |
+          gh release create "$RELEASE_TAG" ReleaseArtifacts/*.zip ReleaseArtifacts/appcast.xml ReleaseArtifacts/SHA256SUMS ReleaseArtifacts/LICENSE ReleaseArtifacts/NOTICE ReleaseArtifacts/THIRD_PARTY_NOTICES.md ReleaseArtifacts/RELEASE_NOTES.md \
+            --repo "$GITHUB_REPOSITORY" --target "$SOURCE_COMMIT" --title "Meridian $RELEASE_TAG" --notes-file ReleaseArtifacts/RELEASE_NOTES.md
+  packages:
+    needs: release
+    uses: ./.github/workflows/packages.yml
+    with:
+      tag: ${{ needs.release.outputs.tag }}

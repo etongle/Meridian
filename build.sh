@@ -24,6 +24,9 @@ else
 fi
 ditto "$BUILD_DIR/Sparkle/Sparkle.framework" "$APP_DIR/Contents/Frameworks/Sparkle.framework"
 cp "$PROJECT_DIR/ThirdParty/Sparkle-LICENSE.txt" "$APP_DIR/Contents/Resources/Sparkle-LICENSE.txt"
+cp "$PROJECT_DIR/LICENSE" "$APP_DIR/Contents/Resources/LICENSE"
+cp "$PROJECT_DIR/NOTICE" "$APP_DIR/Contents/Resources/NOTICE"
+cp "$PROJECT_DIR/THIRD_PARTY_NOTICES.md" "$APP_DIR/Contents/Resources/THIRD_PARTY_NOTICES.md"
 cp "$PROJECT_DIR/.build/AppIcon.icns" "$APP_DIR/Contents/Resources/AppIcon.icns"
 cp "$PROJECT_DIR/Resources/AppIcon.png" "$APP_DIR/Contents/Resources/StatusIcon.png"
 python3 "$PROJECT_DIR/scripts/write-info.py" "$PROJECT_DIR/Config/release.json" "$APP_DIR/Contents/Info.plist"

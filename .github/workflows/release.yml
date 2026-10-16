@@ -9,9 +9,12 @@ on:
         required: true
 permissions:
   contents: write
+  packages: write
 jobs:
   release:
     runs-on: macos-15
+    outputs:
+      tag: ${{ steps.metadata.outputs.tag }}
     env:
       SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
       GH_TOKEN: ${{ github.token }}
@@ -21,9 +24,12 @@ jobs:
         with:
           ref: ${{ inputs.tag || github.ref_name }}
       - name: Configure signed update channel
+        id: metadata
         run: |
           test -n "$SPARKLE_PRIVATE_KEY" || { echo 'Set repository secret SPARKLE_PRIVATE_KEY before releasing.'; exit 1; }
           PUBLIC_KEY=$(printf '%s' "$SPARKLE_PRIVATE_KEY" | swift scripts/release-key.swift)
+          echo "SPARKLE_PUBLIC_KEY=$PUBLIC_KEY" >> "$GITHUB_ENV"
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
           python3 scripts/prepare-release.py "$GITHUB_REPOSITORY" "$RELEASE_TAG" "$PUBLIC_KEY"
       - name: Verify
         run: zsh test.sh
@@ -32,12 +38,12 @@ jobs:
           MERIDIAN_ARCHS: arm64 x86_64
         run: zsh build.sh
       - name: Package and sign update feed
-        run: |
-          mkdir -p dist/updates
-          VERSION=$(python3 -c 'import json; print(json.load(open("Config/release.json"))["version"])')
-          ditto -c -k --sequesterRsrc --keepParent dist/Meridian.app "dist/updates/Meridian-$VERSION-macOS.zip"
-          cp CHANGELOG.md "dist/updates/Meridian-$VERSION-macOS.md"
-          printf '%s' "$SPARKLE_PRIVATE_KEY" | .build/Sparkle/bin/generate_appcast --ed-key-file - --maximum-deltas 0 --embed-release-notes --download-url-prefix "https://github.com/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG/" dist/updates
+        run: zsh scripts/package-release.sh
       - name: Publish release and appcast together
         run: |
-          gh release create "$RELEASE_TAG" dist/updates/*.zip dist/updates/appcast.xml --repo "$GITHUB_REPOSITORY" --title "Meridian $RELEASE_TAG" --notes-file CHANGELOG.md --verify-tag
+          gh release create "$RELEASE_TAG" dist/updates/*.zip dist/updates/appcast.xml dist/updates/SHA256SUMS dist/updates/LICENSE dist/updates/NOTICE dist/updates/THIRD_PARTY_NOTICES.md dist/updates/RELEASE_NOTES.md --repo "$GITHUB_REPOSITORY" --title "Meridian $RELEASE_TAG" --notes-file dist/updates/RELEASE_NOTES.md --verify-tag
+  packages:
+    needs: release
+    uses: ./.github/workflows/packages.yml
+    with:
+      tag: ${{ needs.release.outputs.tag }}

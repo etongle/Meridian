@@ -13,13 +13,13 @@
 - 点击状态栏的应用图标展开全部地区；面板定位在屏幕内，小屏幕可以滚动查看。
 - 显示天气图标、摄氏温度和天气状况，每 15 分钟更新。
 - 默认英文，可在设置中即时切换简体中文。
-- 已集成 Sparkle，支持自动检查及可选的后台下载；签名更新渠道在首个配置完成的正式版本发布后启用。
+- 已集成 Sparkle 签名自动更新，支持自动检查及可选的后台下载。
 
 ![实际应用截图，使用示例时间与天气](docs/assets/widget.png)
 
 ## 使用
 
-需要 **macOS 14 或更新版本**。当前本机构建为 Apple Silicon；发布流程会编译 Apple Silicon 与 Intel 通用版本。
+需要 **macOS 14 或更新版本**。发行包为 Apple Silicon 与 Intel 通用版本。
 
 1. 从 [Releases](https://github.com/etongle/Meridian/releases) 获取版本，或自行构建。
 2. 将 `Meridian.app` 拖入“应用程序”并打开。
@@ -56,6 +56,14 @@ MERIDIAN_ARCHS="arm64 x86_64" zsh build.sh
 
 ## 官网与自动更新
 
-`docs/` 是默认英文、可切换中文的 GitHub Pages 官网。发布流程及签名配置见 [RELEASING.md](RELEASING.md)。没有更新公钥的本地版本不会访问未就绪的更新渠道，设置页会显示说明。
+`docs/` 是默认英文、可切换中文的 GitHub Pages 官网。发布流程及签名配置见 [RELEASING.md](RELEASING.md)。安装包、签名更新源、校验和及许可证一起发布到 Releases，同一份制品镜像到 [GitHub Packages](https://github.com/etongle/Meridian/pkgs/container/meridian)。Packages 存储原生 Mac 应用，不是可运行的容器。
+
+首版使用本地 Apple 代码签名，尚未经过 Apple 公证，首次启动可能受 macOS 安全策略限制。Sparkle 签名用于验证更新，不能代替 Apple 公证。
 
 [应用图标与中英文宣传图](BRAND.md) 已包含在仓库中。第三方授权及天气接口说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+## 授权 — 仅限非商业使用
+
+Meridian 采用 [PolyForm Noncommercial License 1.0.0](LICENSE)。在遵守许可证并保留必要声明的前提下，允许为许可范围内的非商业目的使用、学习、修改和再分发；不授予商业使用权。这属于“非商业源码开放”，不是 OSI 定义的开源许可。
+
+授权覆盖项目原创的应用、源码、官网和美术资源。第三方组件保留各自许可证，参见 [NOTICE](NOTICE) 和 [第三方声明](THIRD_PARTY_NOTICES.md)。

@@ -11,6 +11,8 @@ if not re.fullmatch(r'v\d+\.\d+\.\d+', tag):
     raise SystemExit('Release tags must use vMAJOR.MINOR.PATCH')
 if tag != 'v' + config['version']:
     raise SystemExit('Tag and Config/release.json version must match; increment build for every release.')
+if config['sparklePublicKey'] and config['sparklePublicKey'] != public_key:
+    raise SystemExit('Signing key differs from the trusted project public key.')
 config['repository'] = repository
 config['feedURL'] = f'https://github.com/{repository}/releases/latest/download/appcast.xml'
 config['sparklePublicKey'] = public_key

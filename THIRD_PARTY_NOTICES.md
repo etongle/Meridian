@@ -6,7 +6,7 @@ Sparkle 2.10.0 is distributed under its BSD-style license. The unmodified licens
 
 ## Open-Meteo
 
-Weather API: https://open-meteo.com/ . Weather data attribution and endpoint terms are available from https://open-meteo.com/en/terms and the API documentation. The default free endpoint is intended for non-commercial use. A commercial distribution must arrange an appropriate service or self-hosting before using that endpoint commercially.
+Weather API: https://open-meteo.com/ . Weather data attribution and endpoint terms are available from https://open-meteo.com/en/terms and the API documentation. The default free endpoint is intended for non-commercial use. These service terms are separate from Meridian's own noncommercial software license; they do not grant commercial rights to Meridian.
 
 ## Brand artwork
 

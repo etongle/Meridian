@@ -8,7 +8,7 @@ The buildless site lives in `docs/`. In **Settings → Pages → Build and deplo
 
 ## Signing key: one-time owner setup
 
-Sparkle is bundled and wired into the app. Release builds derive their public key from a stable private seed stored in the repository secret **SPARKLE_PRIVATE_KEY**. Development builds with no public key leave the updater inactive.
+Sparkle is bundled and wired into the app. Release builds derive their public key from a stable private seed stored in the repository secret **SPARKLE_PRIVATE_KEY**. The trusted public key is committed in Config/release.json. Never rotate it casually; users trust this key for future updates.
 
 1. Run `zsh scripts/fetch-sparkle.sh`.
 2. Generate an application-specific key using `.build/Sparkle/bin/generate_keys --account etongle.Meridian`. Sparkle stores the private key in your macOS login Keychain.
@@ -33,7 +33,7 @@ The release workflow requires the current Sparkle 32-byte seed format. It derive
 
 The appcast URL is `https://github.com/etongle/Meridian/releases/latest/download/appcast.xml`. Archive URLs point to the exact version’s release. The website changes its download links when a real archive exists.
 
-Automatic checks default to every 6 hours. Automatic downloads are optional and disabled by default. Sparkle verifies the signed archive before extraction. The first signed public release is required for end-to-end update testing; no live update is claimed before that release exists.
+Automatic checks default to every 6 hours. Automatic downloads are optional and disabled by default. Sparkle verifies the signed archive before extraction. Every archive is verified against the appcast, including a rejection check on modified archive bytes. A real version-to-version installation can be checked after a later build is released.
 
 ## Developer ID and notarization
 
@@ -47,3 +47,22 @@ To create a Developer ID build, install the certificate in the build keychain an
 - https://sparkle-project.org/documentation/programmatic-setup/
 - https://sparkle-project.org/documentation/customization/
 - https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
+
+## Local Keychain signing and first publication
+
+The same release can be signed locally without uploading the private key to GitHub:
+
+```sh
+MERIDIAN_ARCHS="arm64 x86_64" zsh build.sh
+zsh scripts/package-release.sh
+```
+
+The packaging script uses the dedicated login Keychain account `etongle.Meridian`. Set `MERIDIAN_SPARKLE_ACCOUNT` to override the account. The public key must match Config/release.json.
+
+For first publication, create a `release-artifacts/vVERSION` branch from the committed source. Copy the files listed by `dist/updates/SHA256SUMS`, plus `SHA256SUMS`, into `ReleaseArtifacts/`. Add `ReleaseArtifacts/release.json` with `tag` and the full `sourceCommit`. Push that branch. The Publish signed artifacts workflow verifies the source, bundle metadata, universal architectures, code signature, bundled license and Ed25519 archive signature before creating a release whose tag points to that source commit. Only signed public artifacts are uploaded; the private signing key remains in Keychain.
+
+## GitHub Packages
+
+Both publishing workflows mirror the release files to `ghcr.io/etongle/meridian` using the Packages workflow. Tags include the version with and without `v`, plus `latest`. The OCI artifact contains the native macOS ZIP, update feed, checksums and license; it is not a runnable container. Source and license metadata link it to this repository.
+
+GitHub creates a new personal-account package as private. The owner must set its package visibility to Public once in Package settings for anonymous downloads. This is separate from the repository's visibility. After that, future versions retain the setting.

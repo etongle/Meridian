@@ -1,0 +1,59 @@
+name: Packages
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published release tag
+        required: true
+permissions:
+  contents: read
+  packages: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oras-project/setup-oras@v1
+        with:
+          version: 1.3.0
+      - name: Download and verify release assets
+        run: |
+          mkdir package
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir package
+          cd package
+          sha256sum -c SHA256SUMS
+          python3 - <<'PY'
+          import json, os
+          labels = {
+            'org.opencontainers.image.source': 'https://github.com/' + os.environ['GITHUB_REPOSITORY'],
+            'org.opencontainers.image.description': 'Meridian native macOS release archive. Noncommercial use only. Not a runnable container.',
+            'org.opencontainers.image.licenses': 'PolyForm-Noncommercial-1.0.0',
+            'org.opencontainers.image.version': os.environ['RELEASE_TAG'],
+          }
+          with open('package-config.json', 'w') as f:
+            json.dump({'architecture': 'unknown', 'os': 'darwin', 'config': {'Labels': labels}}, f)
+          PY
+      - name: Publish native application as an OCI artifact
+        working-directory: package
+        run: |
+          PACKAGE="ghcr.io/$(printf '%s' "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"
+          printf '%s' "$GH_TOKEN" | oras login ghcr.io --username "$GITHUB_REPOSITORY_OWNER" --password-stdin
+          VERSION="${RELEASE_TAG#v}"
+          oras push "$PACKAGE:$RELEASE_TAG,$VERSION,latest" \
+            --config package-config.json:application/vnd.oci.image.config.v1+json \
+            --annotation "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+            --annotation 'org.opencontainers.image.licenses=PolyForm-Noncommercial-1.0.0' \
+            --annotation 'org.opencontainers.image.description=Native macOS app archive. Noncommercial use only.' \
+            "Meridian-$VERSION-macOS.zip:application/zip" appcast.xml:application/xml \
+            SHA256SUMS:text/plain LICENSE:text/plain NOTICE:text/plain \
+            THIRD_PARTY_NOTICES.md:text/markdown RELEASE_NOTES.md:text/markdown
+          oras manifest fetch "$PACKAGE:$RELEASE_TAG" >/dev/null
+          echo "Published $PACKAGE:$RELEASE_TAG" >> "$GITHUB_STEP_SUMMARY"
