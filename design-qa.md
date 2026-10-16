@@ -46,7 +46,7 @@ final result: passed
 ## Meridian 1.1.0 follow-up
 
 - Default-English native desktop screenshot: `docs/assets/widget.png`. Chinese language switching was also verified through the native Settings tab.
-- Replaced the NSPopover with a separately sized borderless panel. Native rendered panel was checked through computer-use screenshots: all four rows, heading, weather control and footer remained visible with no hosting-view offset. The clock list scrolls when constrained by screen height.
+- Replaced the NSPopover with a separately sized borderless panel. Native rendered panel `docs/assets/widget-popover.png` was checked through computer-use screenshots: all four rows, heading, weather control and footer remained visible with no hosting-view offset. The clock list scrolls when constrained by screen height.
 - Three geometry checks cover top/right margins, a short screen, and a secondary display with negative coordinates. All 44 model, weather, language, configuration and geometry checks pass.
 - The program icon replaces the menu bar globe. AppIcon.icns and all native icon sizes are generated from the same transparent source.
 - The English GitHub Pages home screen was rendered in a browser. Local assets and JavaScript syntax were checked. English and Chinese marketing images were visually inspected; their screenshot dates/times and product names are consistent.
