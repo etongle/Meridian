@@ -1,0 +1,93 @@
+import Foundation
+import CoreGraphics
+
+@main
+struct ClockModelTests {
+    static func main() {
+        var checks = 0
+        func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
+            checks += 1
+            if !condition() { fatalError("FAILED: \(message)") }
+        }
+        func snapshot(_ zone: String, at value: String, local: String = "America/New_York") -> ClockSnapshot {
+            ClockSnapshot(region: ClockRegion(id: zone), instant: ISO8601DateFormatter().date(from: value)!,
+                local: TimeZone(identifier: local)!, language: .simplifiedChinese)
+        }
+
+        let fixture = "2026-10-16T20:42:00Z"
+        let london = snapshot("Europe/London", at: fixture)
+        let shanghai = snapshot("Asia/Shanghai", at: fixture)
+        let tokyo = snapshot("Asia/Tokyo", at: fixture)
+        expect(london.time == "21:42" && london.date == "2026/10/16", "London time and full date")
+        expect(london.weekday == "周五" && london.differenceLabel == "快 5 小时", "London weekday and DST offset")
+        expect(shanghai.time == "04:42" && shanghai.date == "2026/10/17", "Shanghai next day date")
+        expect(shanghai.dayLabel == "次日" && shanghai.weekday == "周六", "Next day badge and weekday")
+        expect(tokyo.time == "05:42" && tokyo.differenceLabel == "快 13 小时", "Tokyo synchronized time")
+        let local = ClockSnapshot(region: .local, instant: ISO8601DateFormatter().date(from: fixture)!, local: TimeZone(identifier: "America/New_York")!, language: .simplifiedChinese)
+        expect(local.time == "16:42" && local.isLocal && local.offsetLabel == "UTC−4", "System local clock")
+
+        let before = snapshot("America/New_York", at: "2026-11-01T05:30:00Z", local: "Etc/UTC")
+        let after = snapshot("America/New_York", at: "2026-11-01T06:30:00Z", local: "Etc/UTC")
+        expect(before.time == "01:30" && after.time == "01:30", "Fall DST repeated hour")
+        expect(before.offsetLabel == "UTC−4" && after.offsetLabel == "UTC−5", "Fall DST offset change")
+        let springBefore = snapshot("America/New_York", at: "2026-03-08T06:59:00Z", local: "Etc/UTC")
+        let springAfter = snapshot("America/New_York", at: "2026-03-08T07:00:00Z", local: "Etc/UTC")
+        expect(springBefore.time == "01:59" && springAfter.time == "03:00", "Spring DST skipped hour")
+        expect(snapshot("Europe/London", at: "2026-10-28T12:00:00Z").differenceLabel == "快 4 小时", "Different DST transition dates")
+
+        let nepal = snapshot("Asia/Kathmandu", at: fixture, local: "Etc/UTC")
+        expect(nepal.offsetLabel == "UTC+5:45" && nepal.differenceLabel == "快 5 小时 45 分钟", "Quarter hour timezone")
+        let india = snapshot("Asia/Kolkata", at: fixture, local: "Etc/UTC")
+        expect(india.time == "02:12" && india.differenceLabel == "快 5 小时 30 分钟", "Half hour timezone with rollover")
+        let previous = snapshot("America/Los_Angeles", at: "2026-10-16T02:00:00Z", local: "Asia/Tokyo")
+        expect(previous.date == "2026/10/15" && previous.dayLabel == "前日", "Previous day")
+        let dateline = snapshot("Pacific/Kiritimati", at: "2026-10-16T10:30:00Z", local: "Pacific/Pago_Pago")
+        expect(dateline.dayDifference == 2 && dateline.dayLabel == "+2 天", "International date line two day difference")
+        let newYear = snapshot("Asia/Tokyo", at: "2026-12-31T20:00:00Z")
+        expect(newYear.date == "2027/01/01" && newYear.weekday == "周五", "New year date with calendar year")
+        let leapDay = snapshot("Asia/Shanghai", at: "2028-02-28T20:00:00Z")
+        expect(leapDay.date == "2028/02/29", "Leap year date")
+        let same = snapshot("Europe/Paris", at: fixture, local: "Europe/Berlin")
+        expect(same.differenceLabel == "与本地同一时间", "Equal UTC offsets")
+        let defaults = CityCatalog.defaults(local: TimeZone(identifier: "Asia/Tokyo")!)
+        expect(defaults.count == 4 && !defaults.dropFirst().contains { $0.id == "Asia/Tokyo" }, "Four defaults without duplicated local zone")
+        expect(CityCatalog.search("东京").contains("Asia/Tokyo"), "Chinese city search")
+        expect(CityCatalog.search("London").contains("Europe/London"), "English city search")
+        expect(CityCatalog.search("no-such-city-123").isEmpty, "Search empty state")
+        let weatherData = Data(#"{"current":{"time":1792183320,"temperature_2m":-3.6,"weather_code":73,"is_day":0}}"#.utf8)
+        let now = Date(timeIntervalSince1970: 1792183500)
+        let weather = try! WeatherClient.decode(weatherData, fetchedAt: now)
+        expect(weather.temperatureLabel == "-4°C" && weather.condition == "雪", "Negative temperatures and WMO snow")
+        expect(!weather.isDay && weather.symbol == "cloud.snow", "Weather icons use actual weather")
+        expect(!weather.isStale(at: now) && weather.isStale(at: now.addingTimeInterval(1801)), "Cached weather expires")
+        let clearNight = WeatherReading(temperature: 0, code: 0, isDay: false, observedAt: now, fetchedAt: now)
+        expect(clearNight.symbol == "moon.stars" && clearNight.condition == "晴", "Clear night weather differs from daylight")
+        let thunder = WeatherReading(temperature: 20, code: 99, isDay: true, observedAt: now, fetchedAt: now)
+        expect(thunder.condition == "雷雨", "WMO thunderstorm and hail")
+        expect((try? WeatherClient.decode(Data(#"{"current":{"time":1792183320,"temperature_2m":null,"weather_code":0,"is_day":1}}"#.utf8))) == nil, "Missing temperature is unavailable, never zero degrees")
+        expect((try? WeatherClient.decode(Data(#"{"error":true,"reason":"rate limit"}"#.utf8))) == nil, "Service errors never become weather")
+        expect(WeatherClient.cityQuery(for: "Etc/UTC") == nil && WeatherClient.cityQuery(for: "UTC") == nil, "UTC has no invented city weather")
+        expect(WeatherClient.cityQuery(for: "America/Argentina/Buenos_Aires") == "Buenos Aires", "Weather search uses final city component")
+        expect(WeatherClient.coordinates["Asia/Kolkata"]?.latitude == 28.61, "Weather coordinates match displayed New Delhi city")
+        let english = ClockSnapshot(region: ClockRegion(id: "Asia/Shanghai"), instant: ISO8601DateFormatter().date(from: fixture)!, local: TimeZone(identifier: "America/New_York")!)
+        expect(english.city == "Shanghai" && english.weekday == "Sat" && english.dayLabel == "Next day", "English is the default language")
+        expect(english.date == "2026/10/17" && english.differenceLabel == "+12h", "English retains complete date and accurate offset")
+        expect(CityCatalog.name(for: "Asia/Kolkata") == "New Delhi", "English weather city matches New Delhi")
+        expect(AppLanguage.english.text("管理地区") == "Manage clocks", "English UI translation")
+        expect(AppLanguage.simplifiedChinese.text("管理地区") == "管理地区", "Chinese UI translation")
+        expect(weather.condition(in: .english) == "Snow", "Localized weather")
+        let key = Data(repeating: 1, count: 32).base64EncodedString()
+        expect(UpdateConfiguration(feed: "https://example.com/appcast.xml", publicKey: key).isConfigured, "HTTPS signed update configuration")
+        expect(!UpdateConfiguration(feed: "http://example.com/appcast.xml", publicKey: key).isConfigured, "Reject insecure update feeds")
+        expect(!UpdateConfiguration(feed: "https://example.com/appcast.xml", publicKey: "invalid").isConfigured, "Reject missing or invalid update signatures")
+        expect(!UpdateConfiguration(feed: nil, publicKey: nil).isConfigured, "Unconfigured updater remains inactive")
+        let screen = CGRect(x: 0, y: 0, width: 1440, height: 875)
+        let dropdown = DropdownGeometry.frame(anchor: CGRect(x: 1320, y: 875, width: 110, height: 25), visibleFrame: screen, size: CGSize(width: 286, height: 450))
+        expect(dropdown.maxY == 867 && dropdown.maxX <= 1432, "Menu bar dropdown has top and right margins")
+        let short = DropdownGeometry.frame(anchor: CGRect(x: 500, y: 300, width: 30, height: 25), visibleFrame: CGRect(x: 0, y: 0, width: 800, height: 500), size: CGSize(width: 286, height: 650))
+        expect(short.minY >= 8 && short.maxY <= 492 && short.height == 484, "Dropdown fits short screens without clipping")
+        let second = DropdownGeometry.frame(anchor: CGRect(x: -100, y: 900, width: 80, height: 25), visibleFrame: CGRect(x: -1440, y: 100, width: 1440, height: 800), size: CGSize(width: 286, height: 450))
+        expect(second.minX >= -1432 && second.maxX <= -8 && second.maxY <= 892, "Dropdown handles negative-coordinate monitors")
+        print("Passed \(checks) checks: full dates, DST, fractional offsets, city search, weather decoding, error states and cache freshness.")
+    }
+}

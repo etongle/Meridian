@@ -1,0 +1,24 @@
+name: Build and checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Model, localization and geometry checks
+        run: zsh test.sh
+      - name: Build universal application
+        env:
+          MERIDIAN_ARCHS: arm64 x86_64
+        run: zsh build.sh
+      - name: Package preview build
+        run: ditto -c -k --sequesterRsrc --keepParent dist/Meridian.app dist/Meridian-preview.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Meridian-preview
+          path: dist/Meridian-preview.zip

@@ -1,0 +1,15 @@
+#!/bin/zsh
+set -euo pipefail
+PROJECT_DIR="${0:A:h}"
+BUILD_DIR="${WORLD_CLOCK_BUILD_DIR:-$PROJECT_DIR/.build}"
+mkdir -p "$BUILD_DIR/ModuleCache"
+swiftc -swift-version 5 -parse-as-library \
+  -module-cache-path "$BUILD_DIR/ModuleCache" \
+  "$PROJECT_DIR/Sources/Localization.swift" \
+  "$PROJECT_DIR/Sources/DropdownGeometry.swift" \
+  "$PROJECT_DIR/Sources/UpdateConfiguration.swift" \
+  "$PROJECT_DIR/Sources/ClockModel.swift" \
+  "$PROJECT_DIR/Sources/Weather.swift" \
+  "$PROJECT_DIR/Tests/ClockModelTests.swift" \
+  -o "$BUILD_DIR/ClockModelTests"
+"$BUILD_DIR/ClockModelTests"

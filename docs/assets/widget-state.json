@@ -1,0 +1,17 @@
+{
+  "desktopRegionIDs" : [
+    "system",
+    "Europe\/London",
+    "Asia\/Shanghai",
+    "Asia\/Tokyo"
+  ],
+  "dropdownShown" : true,
+  "panelPosition" : "{642, 1004}",
+  "statusButtonHasWindow" : true,
+  "statusRegionIDs" : [
+    "system"
+  ],
+  "statusTitle" : "2026\/10\/16 16:42 18°C",
+  "statusWindowFrame" : "{{594, 1290}, {176, 39}}",
+  "statusWindowVisible" : true
+}

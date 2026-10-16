@@ -1,0 +1,10 @@
+{
+  "name": "Meridian",
+  "version": "1.1.0",
+  "build": "2",
+  "bundleIdentifier": "org.codex.worldclock",
+  "repository": "etongle/Meridian",
+  "websiteURL": "https://etongle.github.io/Meridian/",
+  "feedURL": "https://github.com/etongle/Meridian/releases/latest/download/appcast.xml",
+  "sparklePublicKey": ""
+}

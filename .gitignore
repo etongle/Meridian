@@ -1,0 +1,13 @@
+.build/
+dist/
+.DS_Store
+*.app/
+*.zip
+*.dmg
+*.p12
+*.p8
+*.key
+.env*
+
+__pycache__/
+Resources/AppIcon-original.png

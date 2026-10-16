@@ -1,0 +1,17 @@
+{
+  "desktopRegionIDs" : [
+    "system",
+    "Europe\/London",
+    "Asia\/Shanghai",
+    "Asia\/Tokyo"
+  ],
+  "panelPosition" : "{642, 1004}",
+  "popoverShown" : false,
+  "statusButtonHasWindow" : true,
+  "statusRegionIDs" : [
+    "system"
+  ],
+  "statusTitle" : "2026\/10\/16 16:42",
+  "statusWindowFrame" : "{{-1041, 1295}, {143, 39}}",
+  "statusWindowVisible" : true
+}
