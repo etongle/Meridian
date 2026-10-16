@@ -4,7 +4,7 @@
 
 Repository: https://github.com/etongle/Meridian
 
-The buildless site lives in `docs/`. In **Settings → Pages → Build and deployment**, select **GitHub Actions** once. The Website workflow publishes to https://etongle.github.io/Meridian/ on changes to `docs/`.
+The buildless site lives in `docs/`. GitHub Pages can publish **main / (root)**; the root index forwards visitors to the bilingual site in `docs/`. Alternatively, select **GitHub Actions** in Settings → Pages, and the Website workflow publishes `docs/` directly at https://etongle.github.io/Meridian/. The workflow detects branch publishing and leaves deployment to GitHub in that mode.
 
 ## Signing key: one-time owner setup
 
@@ -59,10 +59,14 @@ zsh scripts/package-release.sh
 
 The packaging script uses the dedicated login Keychain account `etongle.Meridian`. Set `MERIDIAN_SPARKLE_ACCOUNT` to override the account. The public key must match Config/release.json.
 
-For first publication, create a `release-artifacts/vVERSION` branch from the committed source. Copy the files listed by `dist/updates/SHA256SUMS`, plus `SHA256SUMS`, into `ReleaseArtifacts/`. Add `ReleaseArtifacts/release.json` with `tag` and the full `sourceCommit`. Push that branch. The Publish signed artifacts workflow verifies the source, bundle metadata, universal architectures, code signature, bundled license and Ed25519 archive signature before creating a release whose tag points to that source commit. Only signed public artifacts are uploaded; the private signing key remains in Keychain.
+For first publication, create a `release-artifacts/vVERSION` branch from the committed source. Copy both the DMG installer and ZIP update archive, and all other files listed by `dist/updates/SHA256SUMS`, plus `SHA256SUMS`, into `ReleaseArtifacts/`. Add `ReleaseArtifacts/release.json` with `tag` and the full `sourceCommit`. Push that branch. The Publish signed artifacts workflow verifies the source, bundle metadata, universal architectures, code signature, bundled license and Ed25519 archive signature before creating a release whose tag points to that source commit. Only signed public artifacts are uploaded; the private signing key remains in Keychain.
 
 ## GitHub Packages
 
-Both publishing workflows mirror the release files to `ghcr.io/etongle/meridian` using the Packages workflow. Tags include the version with and without `v`, plus `latest`. The OCI artifact contains the native macOS ZIP, update feed, checksums and license; it is not a runnable container. Source and license metadata link it to this repository.
+Both publishing workflows mirror the release files to `ghcr.io/etongle/meridian` using the Packages workflow. Tags include the version with and without `v`, plus `latest`. The OCI artifact contains the native macOS DMG and ZIP, update feed, checksums and license; it is not a runnable container. Source and license metadata link it to this repository.
 
 GitHub creates a new personal-account package as private. The owner must set its package visibility to Public once in Package settings for anonymous downloads. This is separate from the repository's visibility. After that, future versions retain the setting.
+
+## DMG installers
+
+`zsh scripts/build-dmg.sh` wraps the existing signed `dist/Meridian.app` in a compressed read-only DMG with an Applications shortcut and license notices. `package-release.sh` builds it after the ZIP-only Sparkle feed so automatic updates keep using ZIP. The website prefers the DMG asset for first installation.

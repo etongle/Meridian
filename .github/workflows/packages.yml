@@ -52,7 +52,7 @@ jobs:
             --annotation "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
             --annotation 'org.opencontainers.image.licenses=PolyForm-Noncommercial-1.0.0' \
             --annotation 'org.opencontainers.image.description=Native macOS app archive. Noncommercial use only.' \
-            "Meridian-$VERSION-macOS.zip:application/zip" appcast.xml:application/xml \
+            "Meridian-$VERSION-macOS.zip:application/zip" "Meridian-$VERSION-macOS.dmg:application/x-apple-diskimage" appcast.xml:application/xml \
             SHA256SUMS:text/plain LICENSE:text/plain NOTICE:text/plain \
             THIRD_PARTY_NOTICES.md:text/markdown RELEASE_NOTES.md:text/markdown
           oras manifest fetch "$PACKAGE:$RELEASE_TAG" >/dev/null

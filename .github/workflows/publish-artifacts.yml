@@ -32,13 +32,24 @@ jobs:
           ditto -x -k "Meridian-$VERSION-macOS.zip" ../unpacked
           codesign --verify --deep --strict ../unpacked/Meridian.app
           lipo ../unpacked/Meridian.app/Contents/MacOS/Meridian -verify_arch arm64 x86_64
+          for DMG in *.dmg; do
+            test -e "$DMG" || continue
+            hdiutil verify "$DMG"
+          done
       - name: Publish release
         env:
           RELEASE_TAG: ${{ steps.metadata.outputs.tag }}
           SOURCE_COMMIT: ${{ steps.metadata.outputs.source }}
         run: |
-          gh release create "$RELEASE_TAG" ReleaseArtifacts/*.zip ReleaseArtifacts/appcast.xml ReleaseArtifacts/SHA256SUMS ReleaseArtifacts/LICENSE ReleaseArtifacts/NOTICE ReleaseArtifacts/THIRD_PARTY_NOTICES.md ReleaseArtifacts/RELEASE_NOTES.md \
-            --repo "$GITHUB_REPOSITORY" --target "$SOURCE_COMMIT" --title "Meridian $RELEASE_TAG" --notes-file ReleaseArtifacts/RELEASE_NOTES.md
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            EXISTING_SOURCE=$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json targetCommitish --jq .targetCommitish)
+            test "$EXISTING_SOURCE" = "$SOURCE_COMMIT" || { echo 'Existing release points to a different source commit.'; exit 1; }
+            gh release upload "$RELEASE_TAG" ReleaseArtifacts/*.dmg ReleaseArtifacts/SHA256SUMS ReleaseArtifacts/RELEASE_NOTES.md --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --notes-file ReleaseArtifacts/RELEASE_NOTES.md
+          else
+            gh release create "$RELEASE_TAG" ReleaseArtifacts/*.zip ReleaseArtifacts/*.dmg ReleaseArtifacts/appcast.xml ReleaseArtifacts/SHA256SUMS ReleaseArtifacts/LICENSE ReleaseArtifacts/NOTICE ReleaseArtifacts/THIRD_PARTY_NOTICES.md ReleaseArtifacts/RELEASE_NOTES.md \
+              --repo "$GITHUB_REPOSITORY" --target "$SOURCE_COMMIT" --title "Meridian $RELEASE_TAG" --notes-file ReleaseArtifacts/RELEASE_NOTES.md
+          fi
   packages:
     needs: release
     uses: ./.github/workflows/packages.yml

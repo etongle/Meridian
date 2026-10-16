@@ -19,9 +19,22 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Detect Pages publishing mode
+        id: mode
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MODE=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq .build_type)
+          echo "type=$MODE" >> "$GITHUB_OUTPUT"
+          if [ "$MODE" = legacy ]; then
+            echo 'Pages publishes main / root; index.html forwards to docs/.' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/configure-pages@v5
+        if: steps.mode.outputs.type != 'legacy'
       - uses: actions/upload-pages-artifact@v3
+        if: steps.mode.outputs.type != 'legacy'
         with:
           path: docs
       - uses: actions/deploy-pages@v4
+        if: steps.mode.outputs.type != 'legacy'
         id: deploy

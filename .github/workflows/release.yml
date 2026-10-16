@@ -41,7 +41,8 @@ jobs:
         run: zsh scripts/package-release.sh
       - name: Publish release and appcast together
         run: |
-          gh release create "$RELEASE_TAG" dist/updates/*.zip dist/updates/appcast.xml dist/updates/SHA256SUMS dist/updates/LICENSE dist/updates/NOTICE dist/updates/THIRD_PARTY_NOTICES.md dist/updates/RELEASE_NOTES.md --repo "$GITHUB_REPOSITORY" --title "Meridian $RELEASE_TAG" --notes-file dist/updates/RELEASE_NOTES.md --verify-tag
+          VERSION="${RELEASE_TAG#v}"
+          gh release create "$RELEASE_TAG" "dist/updates/Meridian-$VERSION-macOS.zip" "dist/updates/Meridian-$VERSION-macOS.dmg" dist/updates/appcast.xml dist/updates/SHA256SUMS dist/updates/LICENSE dist/updates/NOTICE dist/updates/THIRD_PARTY_NOTICES.md dist/updates/RELEASE_NOTES.md --repo "$GITHUB_REPOSITORY" --title "Meridian $RELEASE_TAG" --notes-file dist/updates/RELEASE_NOTES.md --verify-tag
   packages:
     needs: release
     uses: ./.github/workflows/packages.yml

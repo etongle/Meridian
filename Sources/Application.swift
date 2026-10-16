@@ -2,6 +2,8 @@ import AppKit
 import Combine
 import SwiftUI
 
+private let reopenMeridian = Notification.Name("org.codex.worldclock.reopen")
+
 final class DesktopPanel: NSPanel {
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
@@ -52,6 +54,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var statusFromMenuBar = false
     private var localClickMonitor: Any?
     private var globalClickMonitor: Any?
+    private var reopenObserver: NSObjectProtocol?
 
     init(options: LaunchOptions) {
         self.options = options
@@ -74,6 +77,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setupApplicationMenu()
         setupPanel()
         setupMenuBar()
+        reopenObserver = DistributedNotificationCenter.default().addObserver(forName: reopenMeridian,
+            object: Bundle.main.bundleIdentifier, queue: .main) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    _ = self.applicationShouldHandleReopen(NSApp, hasVisibleWindows: false)
+                }
+            }
         observeChanges()
         store.start()
         if store.desktopVisible { panel.orderFrontRegardless() }
@@ -412,10 +422,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 @main
 struct MeridianMain {
     @MainActor static func main() {
+        let bundleID = Bundle.main.bundleIdentifier ?? "org.codex.worldclock"
+        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let lockURL = support.appendingPathComponent("Meridian/instances", isDirectory: true)
+            .appendingPathComponent(bundleID + ".lock")
+        let instance: SingleInstanceLock
+        do { instance = try SingleInstanceLock(fileURL: lockURL) }
+        catch {
+            let alert = NSAlert()
+            alert.messageText = "Meridian could not start"
+            alert.informativeText = error.localizedDescription
+            alert.runModal()
+            return
+        }
+        guard instance.isOwner else {
+            DistributedNotificationCenter.default().postNotificationName(reopenMeridian,
+                object: bundleID, userInfo: nil, deliverImmediately: true)
+            NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+                .first(where: { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier })?
+                .activate(options: [])
+            return
+        }
         let options = LaunchOptions(arguments: CommandLine.arguments)
         let application = NSApplication.shared
         let delegate = AppDelegate(options: options)
         application.delegate = delegate
-        withExtendedLifetime(delegate) { application.run() }
+        withExtendedLifetime((delegate, instance)) { application.run() }
     }
 }

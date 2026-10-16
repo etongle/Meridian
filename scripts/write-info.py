@@ -9,7 +9,7 @@ info = {
     'CFBundleExecutable': 'Meridian', 'CFBundleIdentifier': config['bundleIdentifier'],
     'CFBundleIconFile': 'AppIcon', 'CFBundleName': 'Meridian', 'CFBundleDisplayName': 'Meridian', 'CFBundlePackageType': 'APPL',
     'CFBundleShortVersionString': config['version'], 'CFBundleVersion': config['build'],
-    'LSMinimumSystemVersion': '14.0', 'LSUIElement': True, 'NSHighResolutionCapable': True,
+    'LSMinimumSystemVersion': '14.0', 'LSUIElement': True, 'LSMultipleInstancesProhibited': True, 'NSHighResolutionCapable': True,
     'NSPrincipalClass': 'NSApplication', 'CFBundleDevelopmentRegion': 'en',
     'CFBundleLocalizations': ['en', 'zh-Hans'], 'NSHumanReadableCopyright': 'Meridian · 2026',
     'SUEnableAutomaticChecks': True, 'SUAutomaticallyUpdate': False, 'SUScheduledCheckInterval': 21600,

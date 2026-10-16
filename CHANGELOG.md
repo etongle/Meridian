@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1 — 2026-10-16
+
+- Add a DMG installer with an Applications shortcut; prefer DMG downloads on the website.
+- Enforce a single running instance with a kernel-released process lock; repeated launches reveal the existing app.
+- Repair the hosted website entry when Pages publishes the repository root.
+- Add repository description and website metadata.
+
 ## 1.1.0 — 2026-10-16
 
 - Name the project Meridian and add its orbital-clock app icon.

@@ -9,20 +9,25 @@ REPOSITORY=$(python3 -c 'import json; print(json.load(open("Config/release.json"
 ARCHIVE="Meridian-$VERSION-macOS.zip"
 UPDATES="$PROJECT_DIR/dist/updates"
 mkdir -p "$UPDATES"
+FEED_DIR=$(mktemp -d "$PROJECT_DIR/.build/appcast.XXXXXX")
+trap 'rm -rf "$FEED_DIR"' EXIT
 test -n "$PUBLIC_KEY" || { print -u2 'Configure a stable Sparkle public key first.'; exit 1; }
 codesign --verify --deep --strict dist/Meridian.app
 ditto -c -k --sequesterRsrc --keepParent dist/Meridian.app "$UPDATES/$ARCHIVE"
+cp "$UPDATES/$ARCHIVE" "$FEED_DIR/"
 NOTES="$PROJECT_DIR/releases/$TAG.md"
 [[ -f "$NOTES" ]] || NOTES="$PROJECT_DIR/CHANGELOG.md"
-cp "$NOTES" "$UPDATES/Meridian-$VERSION-macOS.md"
+cp "$NOTES" "$FEED_DIR/Meridian-$VERSION-macOS.md"
 if [[ -n "${SPARKLE_PRIVATE_KEY:-}" ]]; then
-  printf '%s' "$SPARKLE_PRIVATE_KEY" | .build/Sparkle/bin/generate_appcast --ed-key-file - --maximum-deltas 0 --embed-release-notes --download-url-prefix "https://github.com/$REPOSITORY/releases/download/$TAG/" "$UPDATES"
+  printf '%s' "$SPARKLE_PRIVATE_KEY" | .build/Sparkle/bin/generate_appcast --ed-key-file - --maximum-deltas 0 --embed-release-notes --download-url-prefix "https://github.com/$REPOSITORY/releases/download/$TAG/" "$FEED_DIR"
 else
-  .build/Sparkle/bin/generate_appcast --account "${MERIDIAN_SPARKLE_ACCOUNT:-etongle.Meridian}" --maximum-deltas 0 --embed-release-notes --download-url-prefix "https://github.com/$REPOSITORY/releases/download/$TAG/" "$UPDATES"
+  .build/Sparkle/bin/generate_appcast --account "${MERIDIAN_SPARKLE_ACCOUNT:-etongle.Meridian}" --maximum-deltas 0 --embed-release-notes --download-url-prefix "https://github.com/$REPOSITORY/releases/download/$TAG/" "$FEED_DIR"
 fi
+cp "$FEED_DIR/appcast.xml" "$UPDATES/appcast.xml"
 swift -module-cache-path .build/ModuleCache scripts/verify-appcast.swift "$UPDATES/appcast.xml" "$UPDATES/$ARCHIVE" "$PUBLIC_KEY"
+zsh scripts/build-dmg.sh
 cp LICENSE NOTICE THIRD_PARTY_NOTICES.md "$UPDATES/"
 cp "$NOTES" "$UPDATES/RELEASE_NOTES.md"
 cd "$UPDATES"
-shasum -a 256 "$ARCHIVE" appcast.xml LICENSE NOTICE THIRD_PARTY_NOTICES.md RELEASE_NOTES.md > SHA256SUMS
+shasum -a 256 "$ARCHIVE" "Meridian-$VERSION-macOS.dmg" appcast.xml LICENSE NOTICE THIRD_PARTY_NOTICES.md RELEASE_NOTES.md > SHA256SUMS
 print "Signed release: $UPDATES"

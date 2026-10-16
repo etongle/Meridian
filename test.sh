@@ -13,3 +13,8 @@ swiftc -swift-version 5 -parse-as-library \
   "$PROJECT_DIR/Tests/ClockModelTests.swift" \
   -o "$BUILD_DIR/ClockModelTests"
 "$BUILD_DIR/ClockModelTests"
+swiftc -swift-version 5 -parse-as-library \
+  -module-cache-path "$BUILD_DIR/ModuleCache" \
+  "$PROJECT_DIR/Sources/SingleInstance.swift" "$PROJECT_DIR/Tests/SingleInstanceProbe.swift" \
+  -o "$BUILD_DIR/SingleInstanceProbe"
+python3 "$PROJECT_DIR/Tests/single-instance.py" "$BUILD_DIR/SingleInstanceProbe"
