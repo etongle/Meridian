@@ -1,0 +1,41 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Meridian</title>
+        <item>
+            <title>1.4.0</title>
+            <pubDate>Fri, 16 Oct 2026 22:13:20 -0400</pubDate>
+            <sparkle:version>6</sparkle:version>
+            <sparkle:shortVersionString>1.4.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# Meridian 1.4.0
+
+Arrange your world your way.
+
+- **Horizontal** keeps the familiar side-by-side clock strip.
+- **Vertical** stacks full clock cards, with scrolling when the stack is taller than the screen.
+- **Independent clocks** splits selected regions into separate windows. Drag and snap each clock individually; each position is remembered.
+- Switch from the **layout icon** in any title bar, **More** in the menu bar panel, or **Settings**.
+- Closing an independent clock hides only that clock, keeping its region selected. **Open** in the menu bar restores all desktop clocks.
+- Preserve selected regions, language, menu bar clocks and the original horizontal position on upgrade. Existing seconds orbits, full dates, weather, locking and Always on top work in every layout.
+- Keep all seconds orbits aligned with a shared whole-second clock sample, including after switching layouts.
+- Improve source build compatibility with older Swift compilers.
+
+Download **Meridian-1.4.0-macOS.dmg**, open it and drag Meridian.app onto Applications. ZIP is for signed Sparkle updates. Universal for Apple Silicon and Intel; macOS 14 or later.
+
+This build uses ad-hoc Apple code signing and is **not Apple-notarized**. Sparkle update signatures are verified separately. **Noncommercial use only**, under PolyForm Noncommercial 1.0.0. Third-party notices are included.
+
+## 简体中文
+
+新增**横向排列、纵向排列、独立时钟**三种桌面布局。从标题栏布局图标、状态栏“更多”或“设置”切换。
+
+独立模式下，每个地区都是单独的窗口，可分别拖动、吸附并记忆位置。关闭某一张只收起该时钟，不会删除地区；状态栏点击“打开”恢复全部。纵向排列过长时可滚动查看。
+
+升级保留已有地区、语言、状态栏选择和横向面板位置。完整日期、环形秒数、天气、锁定和置顶在所有布局中可用。
+
+请下载 **DMG 安装包**；ZIP 用于签名自动更新。此版尚未经过 Apple 公证，仅限非商业使用。
+]]></description>
+            <enclosure url="https://github.com/etongle/Meridian/releases/download/v1.4.0/Meridian-1.4.0-macOS.zip" length="5812998" type="application/octet-stream" sparkle:edSignature="kjxJuZpSEIOPJ+jdc/d0Q6pwXjdc+tsMK6qtF5xHNp9FXXU6w48LwjyPlFn5fA7AKrNpOdZKiaM5PbeShQwcDA=="/>
+        </item>
+    </channel>
+</rss>
