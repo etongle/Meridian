@@ -1,0 +1,24 @@
+Before opening menu:
+Window: "Meridian", App: Meridian.
+0 系统对话框 Meridian, ID: world-clock-desktop, Secondary Actions: Raise
+	1 container
+		2 图像 Description: 拖移, ID: line.3.horizontal
+		3 text Meridian Drag
+		4 按钮 Description: All clocks, ID: globe
+		5 按钮 Description: Manage clocks, ID: plus
+		6 按钮 Description: Close to menu bar, ID: xmark
+		7 text New York，2026/10/16，Fri，20:52:10，UTC−4，19°C，Overcast Shanghai，2026/10/17，Sat，08:52:10，+12h，25°C，Overcast
+8 menu bar
+	9 Meridian
+	10 Edit
+
+After closing menu:
+The following is a diff from the previous accessibility tree for Window: "Meridian" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 18-24
+~11 系统对话框 Meridian, ID: world-clock-desktop, Secondary Actions: Raise
+~		13 图像 Description: 拖移, ID: line.3.horizontal
+~		14 text Meridian Drag
+~		15 按钮 Description: All clocks, ID: globe
+~		16 按钮 Description: Manage clocks, ID: plus
+~		17 按钮 Description: Close to menu bar, ID: xmark
++		18 text New York，2026/10/16，Fri，20:52:23，UTC−4，19°C，Overcast Shanghai，2026/10/17，Sat，08:52:23，+12h，25°C，Overcast

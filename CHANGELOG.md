@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 — 2026-10-16
+
+- Add a compact seconds orbit beside every desktop clock’s full date, with 60 ticks and a two-digit seconds value.
+- Refresh desktop clock columns once per second on aligned system-clock boundaries, independently of menu bar rendering and weather requests.
+- Expose HH:mm:ss to accessibility and synchronize seconds, time and date at minute and midnight rollovers.
+- Keep the clock synchronization timer active during menu tracking and dragging.
+
 ## 1.2.0 — 2026-10-16
 
 - Add a native draggable title bar, hand cursor and visible drag/lock hints.

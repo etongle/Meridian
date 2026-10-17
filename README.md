@@ -10,6 +10,7 @@ Meridian is a native macOS desktop and menu bar world clock. Keep the places you
 ## Features
 
 - **Full dates, everywhere.** Every region shows the year, month, day and weekday. Previous-day and next-day labels make date changes clear.
+- **Seconds orbit.** A compact 60-tick ring beside each date shows seconds from 00–59 and advances clockwise every second, while the main time stays HH:mm.
 - **Worldwide selection.** Browse 400+ supported time zones and representative cities by geographical region. Search by city, country or time zone in English or Simplified Chinese.
 - **Your clocks, your layout.** Add up to six regions. Choose desktop and menu bar clocks independently, including a single clock or several.
 - **One running instance.** Opening Meridian again brings back the existing app. A process lock also prevents duplicates from copied app bundles or direct launches.
@@ -64,7 +65,7 @@ The checks cover date changes, daylight saving transitions, year boundaries, fra
 [Publishing guide](RELEASING.md) explains the signed update workflow, repository secrets and optional Developer ID signing. DMG installers, ZIP update archives, `appcast.xml`, checksums and license notices are published together on GitHub Releases. The same signed files are mirrored to [GitHub Packages](https://github.com/etongle/Meridian/pkgs/container/meridian) as an OCI artifact; this stores the native Mac app and is not a runnable container.
 
 ```sh
-oras pull ghcr.io/etongle/meridian:1.2.0
+oras pull ghcr.io/etongle/meridian:1.3.0
 ```
 
 The first release uses ad-hoc Apple code signing and is not notarized. macOS may block first launch under its security policy. Sparkle signing authenticates updates and does not replace Apple notarization.

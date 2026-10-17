@@ -92,6 +92,7 @@ struct ClockSnapshot: Equatable, Sendable {
     let city: String
     let language: AppLanguage
     let time: String
+    let second: Int
     let date: String
     let weekday: String
     let dayDifference: Int
@@ -105,9 +106,10 @@ struct ClockSnapshot: Equatable, Sendable {
         let zone = region.timeZone(local: local)
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = zone
-        let components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .weekday], from: instant)
+        let components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second, .weekday], from: instant)
         city = region.name(local: local, language: language)
         time = String(format: "%02d:%02d", components.hour!, components.minute!)
+        second = components.second!
         date = String(format: "%04d/%02d/%02d", components.year!, components.month!, components.day!)
         weekday = (language == .english ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] : ["周日", "周一", "周二", "周三", "周四", "周五", "周六"])[components.weekday! - 1]
         isDaytime = (6..<18).contains(components.hour!)
@@ -125,6 +127,9 @@ struct ClockSnapshot: Equatable, Sendable {
         let originDay = civilCalendar.date(from: localDate)!
         dayDifference = civilCalendar.dateComponents([.day], from: originDay, to: targetDay).day!
     }
+
+    var secondLabel: String { String(format: "%02d", second) }
+    var timeWithSeconds: String { "\(time):\(secondLabel)" }
 
     var dayLabel: String? {
         switch dayDifference {

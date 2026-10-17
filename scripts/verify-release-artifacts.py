@@ -23,12 +23,14 @@ archive = folder / ('Meridian-' + config['version'] + '-macOS.zip')
 with zipfile.ZipFile(archive) as z:
     info = plistlib.loads(z.read('Meridian.app/Contents/Info.plist'))
     for field, expected in {
+        'CFBundleIdentifier': config['bundleIdentifier'],
         'CFBundleShortVersionString': config['version'],
         'CFBundleVersion': config['build'],
         'SUPublicEDKey': config['sparklePublicKey'],
         'SUFeedURL': config['feedURL'],
     }.items():
         assert info[field] == expected, 'App configuration mismatch: ' + field
+    assert not any(key.startswith('WorldClock') for key in info), 'Release contains preview or fixed-clock overrides'
     for filename in ['LICENSE', 'NOTICE', 'THIRD_PARTY_NOTICES.md']:
         expected = subprocess.check_output(['git', 'show', source + ':' + filename])
         assert (folder / filename).read_bytes() == expected, 'Release notice mismatch'

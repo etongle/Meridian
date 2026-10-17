@@ -96,9 +96,7 @@ struct WorldClockView: View {
                         ForEach(0..<columns, id: \.self) { column in
                             let index = row * columns + column
                             if index < regions.count {
-                                ClockColumn(snapshot: store.snapshot(regions[index]), showWeather: store.showWeather,
-                                    weather: store.weather(regions[index]), stale: store.weatherStale(regions[index]),
-                                    weatherMessage: store.weatherMessage(regions[index]))
+                                TickingClockColumn(store: store, region: regions[index])
                                     .frame(maxWidth: .infinity)
                             } else {
                                 Color.clear.frame(maxWidth: .infinity)
@@ -138,6 +136,63 @@ struct WorldClockView: View {
             Button(store.t("退出世界时钟"), action: quit)
         }
         .preferredColorScheme(.dark)
+    }
+}
+
+private struct TickingClockColumn: View {
+    @ObservedObject var store: ClockStore
+    let region: ClockRegion
+
+    var body: some View {
+        if let fixedInstant = store.fixedInstant {
+            column(at: fixedInstant)
+        } else {
+            // Anchor to whole seconds so every region advances together. This timeline
+            // only redraws its column, without rebuilding the status menu each second.
+            TimelineView(.periodic(from: Date(timeIntervalSince1970: 0), by: 1)) { context in
+                column(at: context.date)
+            }
+        }
+    }
+
+    private func column(at date: Date) -> some View {
+        ClockColumn(snapshot: store.snapshot(region, at: date), showWeather: store.showWeather,
+            weather: store.weather(region), stale: store.weatherStale(region),
+            weatherMessage: store.weatherMessage(region))
+    }
+}
+
+private struct SecondsOrbit: View {
+    let second: Int
+    let language: AppLanguage
+
+    var body: some View {
+        ZStack {
+            // Native, data-driven tick marks stay sharp at every display scale.
+            Canvas { context, size in
+                let center = CGPoint(x: size.width / 2, y: size.height / 2)
+                let radius = min(size.width, size.height) / 2 - 1
+                for tick in 0..<60 {
+                    let angle = Double(tick) / 60 * 2 * .pi - .pi / 2
+                    let highlighted = tick < second
+                    let inner = radius - 3.4
+                    var mark = Path()
+                    mark.move(to: CGPoint(x: center.x + cos(angle) * inner, y: center.y + sin(angle) * inner))
+                    mark.addLine(to: CGPoint(x: center.x + cos(angle) * radius, y: center.y + sin(angle) * radius))
+                    context.stroke(mark, with: .color(highlighted ? Palette.night : Palette.quiet.opacity(0.48)),
+                        style: StrokeStyle(lineWidth: highlighted ? 1.5 : 0.8))
+                }
+            }
+            VStack(spacing: -1) {
+                Text(String(format: "%02d", second))
+                    .font(.system(size: 15, weight: .medium).monospacedDigit())
+                    .foregroundStyle(Palette.ink)
+                Text(language == .english ? "s" : "秒")
+                    .font(.system(size: 8, weight: .medium)).foregroundStyle(Palette.quiet)
+            }
+        }
+        .frame(width: 42, height: 42)
+        .accessibilityHidden(true)
     }
 }
 
@@ -196,17 +251,20 @@ private struct ClockColumn: View {
                 .minimumScaleFactor(0.8)
                 .frame(height: 45, alignment: .leading)
 
-            Text(snapshot.date)
-                .font(.system(size: 14, weight: .regular).monospacedDigit())
-                .foregroundStyle(Palette.secondary)
-                .padding(.top, 2)
-
-            Text("\(snapshot.weekday) · \(snapshot.differenceLabel)")
-                .font(.system(size: 12))
-                .foregroundStyle(Palette.quiet)
-                .lineLimit(1)
-                .minimumScaleFactor(0.78)
-                .padding(.top, 5)
+            HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(snapshot.date)
+                        .font(.system(size: 14, weight: .regular).monospacedDigit())
+                        .foregroundStyle(Palette.secondary)
+                        .lineLimit(1).fixedSize(horizontal: true, vertical: false)
+                    Text("\(snapshot.weekday) · \(snapshot.differenceLabel)")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Palette.quiet)
+                        .lineLimit(1).minimumScaleFactor(0.65)
+                }.frame(maxWidth: .infinity, alignment: .leading)
+                SecondsOrbit(second: snapshot.second, language: snapshot.language)
+            }
+            .padding(.top, 2).padding(.trailing, -10)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 25)
@@ -214,7 +272,7 @@ private struct ClockColumn: View {
         .padding(.bottom, 18)
         .allowsHitTesting(false)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(snapshot.city)，\(snapshot.date)，\(snapshot.weekday)，\(snapshot.time)，\(snapshot.differenceLabel)" + (showWeather ? "，\(weather.map { "\($0.temperatureLabel)，\(stale ? snapshot.language.text("天气未更新") : $0.condition(in: snapshot.language))" } ?? weatherMessage)" : ""))
+        .accessibilityLabel("\(snapshot.city)，\(snapshot.date)，\(snapshot.weekday)，\(snapshot.timeWithSeconds)，\(snapshot.differenceLabel)" + (showWeather ? "，\(weather.map { "\($0.temperatureLabel)，\(stale ? snapshot.language.text("天气未更新") : $0.condition(in: snapshot.language))" } ?? weatherMessage)" : ""))
     }
 
     private func badge(_ text: String, local: Bool) -> some View {

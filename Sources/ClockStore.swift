@@ -62,7 +62,7 @@ final class ClockStore: ObservableObject {
     func start() {
         guard timer == nil, fixedInstant == nil else { return }
         refreshWeather()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 let now = Date()
@@ -74,7 +74,9 @@ final class ClockStore: ObservableObject {
                 }
             }
         }
-        timer?.tolerance = 0.25
+        timer.tolerance = 0.25
+        self.timer = timer
+        RunLoop.main.add(timer, forMode: .common)
     }
 
     private func save() {
@@ -92,8 +94,8 @@ final class ClockStore: ObservableObject {
 
     func t(_ source: String) -> String { language.text(source) }
 
-    func snapshot(_ region: ClockRegion) -> ClockSnapshot {
-        ClockSnapshot(region: region, instant: instant, local: localZone, language: language)
+    func snapshot(_ region: ClockRegion, at date: Date? = nil) -> ClockSnapshot {
+        ClockSnapshot(region: region, instant: date ?? instant, local: localZone, language: language)
     }
 
     func contains(_ identifier: String) -> Bool {
@@ -192,8 +194,8 @@ final class ClockStore: ObservableObject {
     func loadPreviewWeather() {
         guard let fixedInstant else { return }
         for (zone, temperature, code, day) in [
-            ("America/New_York", 18.0, 2, true), ("Europe/London", 12.0, 3, false),
-            ("Asia/Shanghai", 21.0, 0, false), ("Asia/Tokyo", 17.0, 61, false)
+            ("America/New_York", 21.0, 3, false), ("Europe/London", 12.0, 3, false),
+            ("Asia/Shanghai", 23.0, 3, true), ("Asia/Tokyo", 17.0, 61, false)
         ] {
             weatherByZone[zone] = WeatherReading(temperature: temperature, code: code,
                 isDay: day, observedAt: fixedInstant, fetchedAt: fixedInstant)
