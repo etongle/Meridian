@@ -1,0 +1,43 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Meridian</title>
+        <item>
+            <title>1.3.0</title>
+            <pubDate>Fri, 16 Oct 2026 20:53:04 -0400</pubDate>
+            <sparkle:version>5</sparkle:version>
+            <sparkle:shortVersionString>1.3.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# Meridian 1.3.0
+
+Seconds, at a glance, without crowding the main time.
+
+- Add a compact **seconds orbit** to the right of each desktop clock’s date and weekday.
+- Read **00–59** in the center while 60 fine ticks light up clockwise through the minute.
+- Keep the main **HH:mm**, full **YYYY/MM/DD**, weather and desktop layout.
+- Update each desktop column once per second on whole-second system-clock boundaries, independently of menu bar layout and weather fetching.
+- Keep seconds synchronized across regions, including fractional offsets; update time and date together at minute and midnight boundaries.
+- Include seconds in the accessible clock description. Keep clock synchronization running while menus are open or the panel is dragged.
+
+Your selected clocks, menu bar choices and panel position are preserved. **Open** brings the desktop panel forward; **×** sends it back to the menu bar without quitting.
+
+Download **Meridian-1.3.0-macOS.dmg**, open it and drag Meridian.app onto Applications. The ZIP is used for signed Sparkle updates. Universal for Apple Silicon and Intel; macOS 14 or later.
+
+This build uses ad-hoc Apple code signing and is **not Apple-notarized**. Sparkle update signatures are verified separately.
+
+**Noncommercial use only**, under PolyForm Noncommercial 1.0.0. Third-party components keep their own licenses; notices are included.
+
+## 简体中文
+
+每个日期右侧新增 **环形秒数**：中间显示 00–59，外圈 60 个刻度按秒顺时针推进。大号时分、完整年月日、天气和原有布局保留。
+
+桌面时钟独立按系统时间每秒刷新，秒数跨地区同步，跨分钟、午夜时日期与时间一起更新；不会每秒重建状态栏面板或请求天气。辅助功能可读取含秒的时间。打开菜单或拖动面板时也会继续同步。
+
+保留已有地区、状态栏选择和面板位置。点击 **打开** 唤起桌面面板，点击 **×** 收起到状态栏，程序继续运行。
+
+请下载 **DMG 安装包**；ZIP 用于签名自动更新。此版尚未经过 Apple 公证，仅限非商业使用。
+]]></description>
+            <enclosure url="https://github.com/etongle/Meridian/releases/download/v1.3.0/Meridian-1.3.0-macOS.zip" length="5758280" type="application/octet-stream" sparkle:edSignature="u6F4B/lftQq9PG8M0FruznwaycfaGnOchU/mquLU1gEXmb2mErPauI2RVDqTmnZOBRsvMxHkLPh0DPrENU6GDw=="/>
+        </item>
+    </channel>
+</rss>
