@@ -9,6 +9,8 @@ swiftc -swift-version 5 -parse-as-library \
   "$PROJECT_DIR/Sources/Localization.swift" \
   "$PROJECT_DIR/Sources/DropdownGeometry.swift" \
   "$PROJECT_DIR/Sources/DesktopGeometry.swift" \
+  "$PROJECT_DIR/Sources/DesktopLayout.swift" \
+  "$PROJECT_DIR/Sources/ClockStore.swift" \
   "$PROJECT_DIR/Sources/UpdateConfiguration.swift" \
   "$PROJECT_DIR/Sources/ClockModel.swift" \
   "$PROJECT_DIR/Sources/WorldRegions.swift" \

@@ -14,6 +14,11 @@ enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
     private static let englishText: [String: String] = [
         "世界时钟": "Meridian",
         "查看全部时钟": "All clocks",
+        "桌面布局": "Desktop layout",
+        "横向排列": "Horizontal",
+        "纵向排列": "Vertical",
+        "独立时钟": "Independent clocks",
+        "独立时钟可分别拖动；关闭后，在状态栏点击“打开”恢复全部。": "Move each clock separately. Choose Open in the menu bar to restore closed clocks.",
         "管理地区": "Manage clocks",
         "点右上角 +，选择要在桌面显示的时钟": "Use + to choose your desktop clocks.",
         "管理地区…": "Manage clocks…",

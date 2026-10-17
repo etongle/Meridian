@@ -12,7 +12,7 @@ Meridian is a native macOS desktop and menu bar world clock. Keep the places you
 - **Full dates, everywhere.** Every region shows the year, month, day and weekday. Previous-day and next-day labels make date changes clear.
 - **Seconds orbit.** A compact 60-tick ring beside each date shows seconds from 00–59 and advances clockwise every second, while the main time stays HH:mm.
 - **Worldwide selection.** Browse 400+ supported time zones and representative cities by geographical region. Search by city, country or time zone in English or Simplified Chinese.
-- **Your clocks, your layout.** Add up to six regions. Choose desktop and menu bar clocks independently, including a single clock or several.
+- **Your clocks, your layout.** Add up to six regions. Choose desktop and menu bar clocks independently. Arrange desktop clocks horizontally, stack them vertically, or split them into separate movable windows.
 - **One running instance.** Opening Meridian again brings back the existing app. A process lock also prevents duplicates from copied app bundles or direct launches.
 - **A quiet desktop presence.** Drag the title bar to position the widget. It snaps to screen edges when released. Pin it above other windows, lock it or hide it.
 - **One-click overview.** A menu bar panel shows all configured clocks. The panel stays within the screen, with a scrollable clock list on smaller displays.
@@ -31,7 +31,8 @@ Requires **macOS 14 or later**. Release builds are universal for Apple Silicon a
 3. Click **+** to add, remove and reorder clocks. Check **Desktop** and **Menu bar** separately.
 4. Click the application icon in the menu bar, then **Open** to open or bring the desktop panel forward. Close the desktop panel with **×** to send it back to the menu bar; the app keeps running.
 5. Drag the **Meridian title bar** to move the panel; release near a screen edge to snap. Under **More**, use **Find panel (reset position)** to recover it, or change **Snap to screen edges**, **Lock position** and **Always on top**.
-6. Open **Settings** to change the language, weather and update preferences.
+6. Use the **layout icon** in the title bar to choose **Horizontal**, **Vertical** or **Independent clocks**. Each independent clock remembers its own position; **×** closes only that clock and **Open** restores all selected clocks. Tall stacks scroll within the screen. The same layout controls are in **More** and **Settings**.
+7. Open **Settings** to change the language, weather and update preferences.
 
 The local clock follows your system time zone. Dates use `YYYY/MM/DD`; times use the 24-hour clock. Settings and window position are saved automatically. The original prototype’s bundle identifier is retained so existing preferences continue to work.
 
@@ -58,14 +59,14 @@ To compile a universal application:
 MERIDIAN_ARCHS="arm64 x86_64" zsh build.sh
 ```
 
-The checks cover date changes, daylight saving transitions, year boundaries, fractional time zones, city search, weather decoding, localization, update configuration, dropdown placement, edge snapping and recovery on secondary screens.
+The checks cover date changes, daylight saving transitions, year boundaries, fractional time zones, city search, weather decoding, localization, update configuration, dropdown placement, edge snapping, layout sizing, independent close/reopen persistence and recovery on secondary screens.
 
 ## Updates and releases
 
 [Publishing guide](RELEASING.md) explains the signed update workflow, repository secrets and optional Developer ID signing. DMG installers, ZIP update archives, `appcast.xml`, checksums and license notices are published together on GitHub Releases. The same signed files are mirrored to [GitHub Packages](https://github.com/etongle/Meridian/pkgs/container/meridian) as an OCI artifact; this stores the native Mac app and is not a runnable container.
 
 ```sh
-oras pull ghcr.io/etongle/meridian:1.3.0
+oras pull ghcr.io/etongle/meridian:1.4.0
 ```
 
 The first release uses ad-hoc Apple code signing and is not notarized. macOS may block first launch under its security policy. Sparkle signing authenticates updates and does not replace Apple notarization.

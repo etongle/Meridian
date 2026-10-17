@@ -3,7 +3,7 @@ import CoreGraphics
 
 @main
 struct ClockModelTests {
-    static func main() {
+    @MainActor static func main() {
         var checks = 0
         func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
             checks += 1
@@ -135,6 +135,46 @@ struct ClockModelTests {
         expect(DesktopGeometry.screen(for: leftPanel, in: [screen, leftScreen]) == leftScreen, "Dragging selects the screen containing most of the panel")
         expect(DesktopGeometry.screen(for: CGRect(x: -2200, y: 150, width: 360, height: 210), in: [screen, leftScreen]) == leftScreen, "Disconnected displays recover onto the nearest screen")
         expect(DesktopGeometry.screen(for: middle, in: []) == nil, "No screen is handled safely")
-        print("Passed \(checks) checks: full dates, DST, fractional offsets, city search, weather decoding, error states and cache freshness.")
+        let horizontal = DesktopLayoutMetrics(layout: .horizontal, clockCount: 4, availableSize: screen.size)
+        expect(horizontal.columns == 4 && horizontal.size == CGSize(width: 720, height: 210), "Horizontal layout preserves the existing compact panel")
+        let vertical = DesktopLayoutMetrics(layout: .vertical, clockCount: 4, availableSize: screen.size)
+        expect(vertical.columns == 1 && vertical.size == CGSize(width: 220, height: 732), "Vertical layout stacks complete clock cards")
+        let independent = DesktopLayoutMetrics(layout: .independent, clockCount: 4, availableSize: screen.size)
+        expect(independent.size == CGSize(width: 220, height: 210) && independent.rows == 1, "Independent clocks retain the full date and seconds card")
+        let tall = DesktopLayoutMetrics(layout: .vertical, clockCount: 6, availableSize: screen.size)
+        expect(tall.needsScrolling && tall.size.height == screen.height - 32 && tall.contentHeight == 1044, "Tall stacks scroll inside the screen instead of clipping clocks")
+        let narrow = DesktopLayoutMetrics(layout: .horizontal, clockCount: 6, availableSize: CGSize(width: 640, height: 480))
+        expect(narrow.columns == 3 && narrow.rows == 2 && narrow.size.width == 540, "Horizontal clocks wrap on narrow monitors")
+        expect(DesktopLayoutMetrics(layout: .independent, clockCount: 0, availableSize: screen.size).size == CGSize(width: 360, height: 110), "An empty independent layout keeps an accessible add-clock panel")
+        let ids = ["system", "Asia/Shanghai"]
+        expect(DesktopLayout.independent.panelIDs(for: ids) == ids && DesktopLayout.vertical.panelIDs(for: ids) == ["combined"], "Independent mode creates one stable window per selected clock")
+        expect(DesktopLayout.independent.panelIDs(for: []) == ["combined"], "Removing the last desktop clock does not lose the controls")
+        expect(DesktopLayout.horizontal.positionKey(for: "combined") != DesktopLayout.vertical.positionKey(for: "combined"), "Each combined layout remembers its own position")
+        expect(DesktopLayout.independent.positionKey(for: "system") == "clock:system", "An independent clock keeps its position when reordered or renamed")
+        let suite = "MeridianLayoutTests." + UUID().uuidString
+        let layoutDefaults = UserDefaults(suiteName: suite)!
+        defer { layoutDefaults.removePersistentDomain(forName: suite) }
+        let layoutStore = ClockStore(fixedInstant: now, localZone: TimeZone(identifier: "America/New_York")!, defaults: layoutDefaults)
+        expect(layoutStore.desktopLayout == .horizontal, "Existing users migrate to the horizontal layout")
+        layoutStore.desktopRegionIDs = Set(ids)
+        layoutStore.desktopLayout = .independent
+        layoutStore.closeDesktopPanel("system")
+        expect(!layoutStore.panelVisible("system") && layoutStore.panelVisible("Asia/Shanghai"), "Closing one independent clock leaves the others visible")
+        expect(layoutStore.desktopRegionIDs == Set(ids), "Closing a clock keeps its selected region")
+        layoutStore.closeDesktopPanel("Asia/Shanghai")
+        expect(!layoutStore.desktopVisible, "Closing the last clock minimizes all clocks to the menu bar")
+        layoutStore.revealDesktop()
+        expect(layoutStore.panelVisible("system") && layoutStore.panelVisible("Asia/Shanghai") && layoutStore.dismissedDesktopIDs.isEmpty, "Open always restores every selected desktop clock")
+        layoutStore.closeDesktopPanel("system")
+        let restoredStore = ClockStore(fixedInstant: now, defaults: layoutDefaults)
+        expect(restoredStore.desktopLayout == .independent && !restoredStore.panelVisible("system") && restoredStore.panelVisible("Asia/Shanghai"), "Arrangement and independently closed clocks survive a restart")
+        layoutStore.desktopLayout = .vertical
+        expect(layoutStore.dismissedDesktopIDs.isEmpty && layoutStore.panelVisible("combined"), "Combining clocks restores the complete stack")
+        layoutStore.closeDesktopPanel("combined")
+        expect(!layoutStore.desktopVisible, "Closing a combined panel minimizes it to the menu bar")
+        layoutDefaults.set("unknown-layout", forKey: "desktopLayout")
+        expect(ClockStore(fixedInstant: now, defaults: layoutDefaults).desktopLayout == .horizontal, "An unrecognized saved arrangement recovers safely")
+        expect(AppLanguage.english.text("独立时钟") == "Independent clocks" && AppLanguage.english.text("纵向排列") == "Vertical", "New layout controls are localized in English")
+        print("Passed \(checks) checks: full dates, DST, fractional offsets, city search, weather decoding, cache freshness and desktop layout lifecycle.")
     }
 }

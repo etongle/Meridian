@@ -48,6 +48,8 @@ private struct HoverButton: View {
 
 struct WorldClockView: View {
     @ObservedObject var store: ClockStore
+    let panelID: String
+    let metrics: DesktopLayoutMetrics
     let manage: () -> Void
     let showStatus: () -> Void
     let resetPosition: () -> Void
@@ -63,7 +65,7 @@ struct WorldClockView: View {
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(Color.white.opacity(0.94))
                     Spacer(minLength: 0)
-                    if store.panelSize.width >= 360 {
+                    if metrics.size.width >= 360 {
                         Text(store.t(store.positionLocked ? "已锁定" : "拖动"))
                             .font(.system(size: 10)).foregroundStyle(Palette.quiet)
                             .padding(.trailing, 12)
@@ -72,9 +74,10 @@ struct WorldClockView: View {
                 .frame(maxWidth: .infinity, minHeight: 35)
                 .overlay(DesktopDragArea(enabled: !store.positionLocked,
                     hint: store.t(store.positionLocked ? "位置已锁定，可在右键菜单解锁。" : (store.snapToEdges ? "拖动标题栏可移动，靠近屏幕边缘自动吸附。" : "拖动标题栏可移动。"))))
+                DesktopLayoutMenu(store: store)
                 HoverButton(symbol: "globe", label: store.t("查看全部时钟"), action: showStatus)
                 HoverButton(symbol: "plus", label: store.t("管理地区"), action: manage)
-                HoverButton(symbol: "xmark", label: store.t("收起到状态栏")) { store.desktopVisible = false }
+                HoverButton(symbol: "xmark", label: store.t("收起到状态栏")) { store.closeDesktopPanel(panelID) }
             }
             .padding(.leading, 14)
             .padding(.trailing, 8)
@@ -82,40 +85,22 @@ struct WorldClockView: View {
 
             Rectangle().fill(.white.opacity(0.075)).frame(height: 1)
 
-            let regions = store.desktopRegions
-            let columns = max(1, min(store.columns, regions.count))
-            let rows = Int(ceil(Double(regions.count) / Double(columns)))
+            let regions = panelID == "combined" ? store.desktopRegions : store.desktopRegions.filter { $0.id == panelID }
             if regions.isEmpty {
                 Text(store.t("点右上角 +，选择要在桌面显示的时钟"))
                     .font(.system(size: 12)).foregroundStyle(Palette.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            VStack(spacing: 0) {
-                ForEach(0..<rows, id: \.self) { row in
-                    HStack(spacing: 0) {
-                        ForEach(0..<columns, id: \.self) { column in
-                            let index = row * columns + column
-                            if index < regions.count {
-                                TickingClockColumn(store: store, region: regions[index])
-                                    .frame(maxWidth: .infinity)
-                            } else {
-                                Color.clear.frame(maxWidth: .infinity)
-                            }
-                            if column < columns - 1 {
-                                Rectangle().fill(.white.opacity(0.12))
-                                    .frame(width: 1, height: 142)
-                                    .offset(y: -6)
-                            }
-                        }
-                    }
-                    .frame(height: 174)
-                    if row < rows - 1 {
-                        Rectangle().fill(.white.opacity(0.1)).frame(height: 0)
-                    }
+            if !regions.isEmpty {
+                if metrics.needsScrolling {
+                    ScrollView(.vertical) { clockGrid(regions) }
+                        .frame(maxHeight: .infinity)
+                } else {
+                    clockGrid(regions)
                 }
             }
         }
-        .frame(width: store.panelSize.width, height: store.panelSize.height)
+        .frame(width: metrics.size.width, height: metrics.size.height)
         .background(Color(red: 0.12, green: 0.135, blue: 0.16).opacity(0.88))
         .background(DesktopMaterial())
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
@@ -125,38 +110,92 @@ struct WorldClockView: View {
                 .allowsHitTesting(false)
         }
         .contextMenu {
+            DesktopLayoutPicker(store: store)
+            Divider()
             Button(store.t("管理地区…"), action: manage)
             Button(store.t("查看状态栏时钟"), action: showStatus)
             Toggle(store.t("始终置顶"), isOn: $store.alwaysOnTop)
             Toggle(store.t("锁定位置"), isOn: $store.positionLocked)
             Toggle(store.t("吸附屏幕边缘"), isOn: $store.snapToEdges)
             Button(store.t("重置位置"), action: resetPosition)
-            Button(store.t("隐藏桌面组件")) { store.desktopVisible = false }
+            Button(store.t("收起到状态栏")) { store.closeDesktopPanel(panelID) }
             Divider()
             Button(store.t("退出世界时钟"), action: quit)
         }
         .preferredColorScheme(.dark)
+    }
+
+    private func clockGrid(_ regions: [ClockRegion]) -> some View {
+        VStack(spacing: 0) {
+            ForEach(0..<metrics.rows, id: \.self) { row in
+                HStack(spacing: 0) {
+                    ForEach(0..<metrics.columns, id: \.self) { column in
+                        let index = row * metrics.columns + column
+                        if index < regions.count {
+                            TickingClockColumn(store: store, region: regions[index])
+                                .frame(maxWidth: .infinity)
+                        } else {
+                            Color.clear.frame(maxWidth: .infinity)
+                        }
+                        if column < metrics.columns - 1 {
+                            Rectangle().fill(.white.opacity(0.12))
+                                .frame(width: 1, height: 142).offset(y: -6)
+                        }
+                    }
+                }.frame(height: 174)
+                if row < metrics.rows - 1 {
+                    Rectangle().fill(.white.opacity(0.1))
+                        .frame(height: 1).padding(.horizontal, 16).padding(.bottom, -1)
+                }
+            }
+        }
+    }
+}
+
+private struct DesktopLayoutPicker: View {
+    @ObservedObject var store: ClockStore
+    var body: some View {
+        Picker(store.t("桌面布局"), selection: $store.desktopLayout) {
+            ForEach(DesktopLayout.allCases) { layout in
+                Label(store.t(layout.title), systemImage: layout.symbol).tag(layout)
+            }
+        }
+    }
+}
+
+private struct DesktopLayoutMenu: View {
+    @ObservedObject var store: ClockStore
+    @ViewState private var hovered = false
+    var body: some View {
+        Menu { DesktopLayoutPicker(store: store) } label: {
+            Image(systemName: store.desktopLayout.symbol)
+                .font(.system(size: 14))
+                .foregroundStyle(hovered ? .white : Palette.quiet)
+                .frame(width: 30, height: 30)
+                .background(.white.opacity(hovered ? 0.1 : 0), in: RoundedRectangle(cornerRadius: 7))
+        }
+        .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+        .help(store.t("桌面布局"))
+        .accessibilityLabel(store.t("桌面布局"))
+        .onHover { hovered = $0 }
     }
 }
 
 private struct TickingClockColumn: View {
     @ObservedObject var store: ClockStore
     let region: ClockRegion
+    @ObservedObject private var seconds: ClockSeconds
 
-    var body: some View {
-        if let fixedInstant = store.fixedInstant {
-            column(at: fixedInstant)
-        } else {
-            // Anchor to whole seconds so every region advances together. This timeline
-            // only redraws its column, without rebuilding the status menu each second.
-            TimelineView(.periodic(from: Date(timeIntervalSince1970: 0), by: 1)) { context in
-                column(at: context.date)
-            }
-        }
+    init(store: ClockStore, region: ClockRegion) {
+        self.store = store
+        self.region = region
+        self.seconds = store.seconds
     }
 
-    private func column(at date: Date) -> some View {
-        ClockColumn(snapshot: store.snapshot(region, at: date), showWeather: store.showWeather,
+    var body: some View {
+        // All cards and windows read one sampled instant. Only these columns observe
+        // seconds; the menu bar and weather do not rebuild on every tick.
+        ClockColumn(snapshot: store.snapshot(region, at: seconds.instant), showWeather: store.showWeather,
             weather: store.weather(region), stale: store.weatherStale(region),
             weatherMessage: store.weatherMessage(region))
     }
@@ -547,6 +586,8 @@ struct StatusPopoverView: View {
                 Spacer()
                 Button(store.t("刷新")) { store.refreshWeather(force: true) }
                 Menu(store.t("更多")) {
+                    DesktopLayoutPicker(store: store)
+                    Divider()
                     Toggle(store.t("始终置顶"), isOn: $store.alwaysOnTop)
                     Toggle(store.t("锁定位置"), isOn: $store.positionLocked)
                     Toggle(store.t("吸附屏幕边缘"), isOn: $store.snapToEdges)
@@ -596,6 +637,13 @@ private struct PreferencesView: View {
                 Picker(store.t("语言"), selection: $store.language) {
                     ForEach(AppLanguage.allCases) { language in Text(language.displayName).tag(language) }
                 }.labelsHidden().frame(width: 180)
+            }
+            Divider()
+            VStack(alignment: .leading, spacing: 10) {
+                Text(store.t("桌面布局")).font(.system(size: 17, weight: .semibold))
+                DesktopLayoutPicker(store: store).pickerStyle(.segmented).labelsHidden()
+                Text(store.t("独立时钟可分别拖动；关闭后，在状态栏点击“打开”恢复全部。"))
+                    .font(.system(size: 12)).foregroundStyle(.secondary)
             }
             Divider()
             Toggle(store.t("显示天气（°C）"), isOn: $store.showWeather)

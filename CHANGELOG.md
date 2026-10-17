@@ -1,7 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.4.0 — 2026-10-16
 
+- Add horizontal, vertical and independent desktop clock layouts, with title-bar, menu bar and Settings controls.
+- Remember each layout and independent clock position; keep screen-edge snapping and locking for every window.
+- Close independent clocks separately without removing their regions. Open restores all selected desktop clocks.
+- Keep tall stacks scrollable within the visible screen and recover windows after display changes.
+- Preserve existing clocks, language, menu bar selection and horizontal position on upgrade.
+- Share a single whole-second clock sample across every desktop card and window to keep seconds aligned after layout changes, without refreshing weather or the menu bar each second.
 - Split native tick drawing into smaller typed expressions for older Swift compiler compatibility; visual layout and seconds behavior are unchanged.
 
 ## 1.3.0 — 2026-10-16

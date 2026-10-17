@@ -1,0 +1,5 @@
+Upgrade verified: original selected clocks, language, behavior and horizontal position preserved.
+Restart verified: arrangement, independent positions, desktop selection, menu bar clocks and language preserved.
+Independent drag: New York {2920, 1090} -> {2970, 1020}; Shanghai stayed {3152, 1090}.
+Second drag: Shanghai {3152, 1090} -> {3152, 1050}; New York stayed {2970, 1020}.
+Closing New York left Shanghai visible and updating; Open restored New York.
