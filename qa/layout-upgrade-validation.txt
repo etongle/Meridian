@@ -3,3 +3,5 @@ Restart verified: arrangement, independent positions, desktop selection, menu ba
 Independent drag: New York {2920, 1090} -> {2970, 1020}; Shanghai stayed {3152, 1090}.
 Second drag: Shanghai {3152, 1090} -> {3152, 1050}; New York stayed {2970, 1020}.
 Closing New York left Shanghai visible and updating; Open restored New York.
+Final build: seconds synchronized across both cards after layout switches; time advanced 22:14:24 -> 22:14:28 while the layout menu was open.
+Latest user preference preserved after final validation: independent layout, New York closed, Shanghai visible; all clock positions unchanged.

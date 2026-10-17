@@ -40,3 +40,8 @@ final result: passed
 ## Historical QA
 
 Earlier world-clock design history is preserved in `qa/design-qa-before-seconds.md`.
+
+
+## Desktop layouts — 1.4.0
+
+The horizontal, vertical and independent desktop layouts passed native visual and interaction checks. See [the layout verification record](qa/layouts-qa.md) for screenshots, 100 automated checks, close/reopen behavior and restart persistence.

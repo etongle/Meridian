@@ -1,0 +1,11 @@
+The following is a diff from the previous accessibility tree for Window: "Meridian" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 0-8, 12-17
++12 系统对话框 Meridian, ID: world-clock-desktop-combined, Secondary Actions: Raise
++	13 container
++		14 图像 Description: 拖移, ID: line.3.horizontal
++		15 文本 Meridian
++		16 菜单按钮 桌面布局, Description: 一乘二拆分的矩形
++		17 按钮 Description: 查看全部时钟, ID: globe
++		18 按钮 Description: 管理地区, ID: plus
++		19 按钮 Description: 收起到状态栏, ID: xmark
++		20 text 纽约，2026/10/16，周五，22:14:24，UTC−4，18°C，阴 上海，2026/10/17，周六，10:14:24，快 12 小时，27°C，阴
