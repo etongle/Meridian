@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Split native tick drawing into smaller typed expressions for older Swift compiler compatibility; visual layout and seconds behavior are unchanged.
+
 ## 1.3.0 — 2026-10-16
 
 - Add a compact seconds orbit beside every desktop clock’s full date, with 60 ticks and a two-digit seconds value.

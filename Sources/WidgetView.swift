@@ -168,31 +168,43 @@ private struct SecondsOrbit: View {
 
     var body: some View {
         ZStack {
-            // Native, data-driven tick marks stay sharp at every display scale.
             Canvas { context, size in
-                let center = CGPoint(x: size.width / 2, y: size.height / 2)
-                let radius = min(size.width, size.height) / 2 - 1
-                for tick in 0..<60 {
-                    let angle = Double(tick) / 60 * 2 * .pi - .pi / 2
-                    let highlighted = tick < second
-                    let inner = radius - 3.4
-                    var mark = Path()
-                    mark.move(to: CGPoint(x: center.x + cos(angle) * inner, y: center.y + sin(angle) * inner))
-                    mark.addLine(to: CGPoint(x: center.x + cos(angle) * radius, y: center.y + sin(angle) * radius))
-                    context.stroke(mark, with: .color(highlighted ? Palette.night : Palette.quiet.opacity(0.48)),
-                        style: StrokeStyle(lineWidth: highlighted ? 1.5 : 0.8))
-                }
+                drawTicks(in: &context, size: size)
             }
-            VStack(spacing: -1) {
-                Text(String(format: "%02d", second))
-                    .font(.system(size: 15, weight: .medium).monospacedDigit())
-                    .foregroundStyle(Palette.ink)
-                Text(language == .english ? "s" : "秒")
-                    .font(.system(size: 8, weight: .medium)).foregroundStyle(Palette.quiet)
-            }
+            counter
         }
         .frame(width: 42, height: 42)
         .accessibilityHidden(true)
+    }
+
+    private var counter: some View {
+        VStack(spacing: -1) {
+            Text(String(format: "%02d", second))
+                .font(.system(size: 15, weight: .medium).monospacedDigit())
+                .foregroundStyle(Palette.ink)
+            Text(language == .english ? "s" : "秒")
+                .font(.system(size: 8, weight: .medium)).foregroundStyle(Palette.quiet)
+        }
+    }
+
+    // Keep drawing arithmetic outside the view builder so older Swift toolchains
+    // can type-check the native data visualization without a large expression.
+    private func drawTicks(in context: inout GraphicsContext, size: CGSize) {
+        let center = CGPoint(x: size.width / 2, y: size.height / 2)
+        let radius: CGFloat = min(size.width, size.height) / 2 - 1
+        let inner: CGFloat = radius - 3.4
+        for tick in 0..<60 {
+            let angle: Double = Double(tick) / 60 * 2 * Double.pi - Double.pi / 2
+            let dx = CGFloat(cos(angle))
+            let dy = CGFloat(sin(angle))
+            let highlighted = tick < second
+            var mark = Path()
+            mark.move(to: CGPoint(x: center.x + dx * inner, y: center.y + dy * inner))
+            mark.addLine(to: CGPoint(x: center.x + dx * radius, y: center.y + dy * radius))
+            let color: Color = highlighted ? Palette.night : Palette.quiet.opacity(0.48)
+            let width: CGFloat = highlighted ? 1.5 : 0.8
+            context.stroke(mark, with: .color(color), style: StrokeStyle(lineWidth: width))
+        }
     }
 }
 
