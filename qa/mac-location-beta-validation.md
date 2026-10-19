@@ -32,6 +32,8 @@ Beta.7 adds composite city queries using Open-Meteo's GeoNames-based geocoding w
 
 English native interface labels, controls and the network-failure message were inspected. An English service query returned the correct candidate in the direct service check; an in-app English request encountered a connection failure and showed the localized retry message. The Chinese UI preference was restored. The final app is universal, version 1.5.0-beta.7 build 15, installed in Applications; the local DMG passed image integrity verification.
 
+Final interactive state: the owner explicitly chose to keep the named Cupertino simulation active for continued testing. A final native Verify action again reported a fresh Core Location target match at the selected candidate. The original recovery backup is therefore intentionally retained for Restore. The earlier complete restoration cycle and return to the original off permission state were validated before this continued-testing choice.
+
 ## Pending
 
 Administrator cancellation remains unexercised. The active-session quit warning and Keep and quit were exercised; the recovery indicator survived the app update. Automated rollback tests use in-memory preferences and private temporary directories, not the system services. Other macOS versions and other location consumers remain unverified.
