@@ -79,6 +79,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     let options: LaunchOptions
     let store: ClockStore
     let updates: UpdateController
+    let location = MacLocationController()
     private var panels: [String: DesktopPanel] = [:]
     private var panelPositionKeys: [String: String] = [:]
     private var statusAnchorID = "combined"
@@ -140,6 +141,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if location.busy { return .terminateCancel }
+        guard location.needsRestore else { return .terminateNow }
+        let alert = NSAlert()
+        alert.messageText = store.t("模拟定位可能仍在生效")
+        alert.informativeText = store.t("退出应用不会自动停止系统定位模拟。请选择恢复或保留。")
+        alert.addButton(withTitle: store.t("恢复并退出"))
+        alert.addButton(withTitle: store.t("保留并退出"))
+        alert.addButton(withTitle: store.t("取消"))
+        switch alert.runModal() {
+        case .alertFirstButtonReturn:
+            location.restore { success in sender.reply(toApplicationShouldTerminate: success) }
+            return .terminateLater
+        case .alertSecondButtonReturn: return .terminateNow
+        default: return .terminateCancel
+        }
+    }
+
     private func makePanel(id: String, metrics: DesktopLayoutMetrics) -> DesktopPanel {
         let panel = DesktopPanel(contentRect: NSRect(origin: .zero, size: metrics.size),
             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
@@ -187,6 +206,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         desktop.target = self
         desktop.keyEquivalentModifierMask = [.command, .shift]
         app.addItem(withTitle: store.t("管理地区…"), action: #selector(showManager), keyEquivalent: ",").target = self
+        app.addItem(withTitle: store.t("Mac 定位…"), action: #selector(showMacLocation), keyEquivalent: "").target = self
         app.addItem(withTitle: store.t("检查更新…"), action: #selector(checkForUpdates), keyEquivalent: "").target = self
         app.addItem(.separator())
         app.addItem(withTitle: store.t("退出世界时钟"), action: #selector(quit), keyEquivalent: "q").target = self
@@ -296,6 +316,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let root = StatusPopoverView(store: store, updates: updates, clockListHeight: listHeight,
             manage: { [weak self] in self?.statusWindow?.orderOut(nil); self?.showManager() },
             showDesktop: { [weak self] in self?.showDesktop() },
+            showLocation: { [weak self] in self?.showMacLocation() },
             resetPosition: { [weak self] in self?.resetPosition() }, quit: { NSApp.terminate(nil) })
         if statusWindow == nil {
             let window = ClockDropdownPanel(contentRect: NSRect(origin: .zero, size: size),
@@ -545,7 +566,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             window.title = store.t("世界时钟 · 管理地区")
             window.isReleasedWhenClosed = false
             window.appearance = NSAppearance(named: .darkAqua)
-            window.contentView = NSHostingView(rootView: SettingsRootView(store: store, updates: updates,
+            window.contentView = NSHostingView(rootView: SettingsRootView(store: store, updates: updates, location: location,
                 done: { [weak self] in self?.manager?.close() }))
             window.center()
             manager = window
@@ -553,6 +574,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         store.notice = nil
         manager?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc private func showMacLocation() {
+        statusWindow?.orderOut(nil)
+        location.selectedTab = 1
+        showManager()
     }
 
     private func capture(to path: String) {

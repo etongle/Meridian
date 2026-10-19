@@ -24,3 +24,11 @@ swiftc -swift-version 5 -parse-as-library \
   "$PROJECT_DIR/Sources/SingleInstance.swift" "$PROJECT_DIR/Tests/SingleInstanceProbe.swift" \
   -o "$BUILD_DIR/SingleInstanceProbe"
 python3 "$PROJECT_DIR/Tests/single-instance.py" "$BUILD_DIR/SingleInstanceProbe"
+
+swiftc -swift-version 5 -parse-as-library \
+  -module-cache-path "$BUILD_DIR/ModuleCache" \
+  "$PROJECT_DIR/Sources/MacLocationModel.swift" \
+  "$PROJECT_DIR/Helpers/LocationEngine.swift" \
+  "$PROJECT_DIR/Tests/MacLocationTests.swift" \
+  -o "$BUILD_DIR/MacLocationTests"
+"$BUILD_DIR/MacLocationTests"

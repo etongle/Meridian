@@ -12,6 +12,8 @@ info = {
     'LSMinimumSystemVersion': '14.0', 'LSUIElement': True, 'LSMultipleInstancesProhibited': True, 'NSHighResolutionCapable': True,
     'NSPrincipalClass': 'NSApplication', 'CFBundleDevelopmentRegion': 'en',
     'CFBundleLocalizations': ['en', 'zh-Hans'], 'NSHumanReadableCopyright': 'Meridian · 2026',
+    'NSLocationUsageDescription': 'Verify whether macOS returns the region you selected for location simulation. Coordinates stay on this Mac.',
+    'NSLocationWhenInUseUsageDescription': 'Verify whether macOS returns the region you selected for location simulation. Coordinates stay on this Mac.',
     'SUEnableAutomaticChecks': True, 'SUAutomaticallyUpdate': False, 'SUScheduledCheckInterval': 21600,
     'SUVerifyUpdateBeforeExtraction': True,
 }

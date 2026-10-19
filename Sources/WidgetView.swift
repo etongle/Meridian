@@ -539,6 +539,7 @@ struct StatusPopoverView: View {
     let clockListHeight: CGFloat
     let manage: () -> Void
     let showDesktop: () -> Void
+    let showLocation: () -> Void
     let resetPosition: () -> Void
     let quit: () -> Void
 
@@ -586,6 +587,8 @@ struct StatusPopoverView: View {
                 Spacer()
                 Button(store.t("刷新")) { store.refreshWeather(force: true) }
                 Menu(store.t("更多")) {
+                    Button(store.t("Mac 定位…"), action: showLocation)
+                    Divider()
                     DesktopLayoutPicker(store: store)
                     Divider()
                     Toggle(store.t("始终置顶"), isOn: $store.alwaysOnTop)
@@ -611,13 +614,19 @@ struct StatusPopoverView: View {
 struct SettingsRootView: View {
     @ObservedObject var store: ClockStore
     @ObservedObject var updates: UpdateController
+    @ObservedObject var location: MacLocationController
     let done: () -> Void
     var body: some View {
-        TabView {
+        TabView(selection: $location.selectedTab) {
             RegionManagerView(store: store, done: done)
                 .tabItem { Label(store.language == .english ? "Clocks" : "时钟", systemImage: "globe") }
+                .tag(0)
+            MacLocationView(store: store, location: location, done: done)
+                .tabItem { Label(store.t("Mac 定位"), systemImage: "mappin.and.ellipse") }
+                .tag(1)
             PreferencesView(store: store, updates: updates, done: done)
                 .tabItem { Label(store.language == .english ? "Settings" : "设置", systemImage: "gearshape") }
+                .tag(2)
         }
         .frame(width: 600, height: 760)
         .preferredColorScheme(.dark)

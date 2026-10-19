@@ -19,3 +19,16 @@ English and Simplified Chinese exemplar city names use Unicode CLDR, revision `9
 ## Brand artwork
 
 The Meridian app icon and launch posters were generated for this project using the built-in image generation tool, with the actual native application screenshot as the product reference. Prompts are recorded in BRAND.md. No third-party brand or App Store endorsement is implied.
+
+
+## Experimental Mac location simulation
+
+The private preference mechanism and account/service command sequence were informed by TimBitBox/mac-location-spoofer, Copyright (c) 2026 TimBitBox, under the MIT License. Meridian implements its own Swift transaction, protected backup, UI and verification code. The upstream method is experimental; it is not an Apple-supported API.
+
+Source: https://github.com/TimBitBox/mac-location-spoofer
+
+The upstream MIT license is included as `ThirdParty/MacLocation-LICENSE.txt` and bundled as `MacLocation-LICENSE.txt`.
+
+## Online city search
+
+City names, administrative areas, time zones and WGS84 coordinates are returned by the [Open-Meteo Geocoding API](https://open-meteo.com/en/docs/geocoding-api), based on [GeoNames](https://www.geonames.org/about.html). These API data are provided under [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/). Meridian arranges names into candidate labels and retains the returned coordinates without alteration. Attribution links are displayed beside the search results. The third-party data remain under their own license, independent of Meridian's noncommercial source license. No provider source code or entire database is bundled.

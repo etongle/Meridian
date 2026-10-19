@@ -7,6 +7,10 @@
 
 Meridian is a native macOS desktop and menu bar world clock. Keep the places you care about close, with the date and weather right beside the time.
 
+> **Experimental preview:** this branch adds [Mac Location simulation](docs/mac-location.md). Administrator authorization and real-device verification are required. The stable 1.4.0 release is unchanged.
+
+Mac Location accepts worldwide city queries such as `Cupertino, CA - United States`, with state/province and country disambiguation, named candidates and manual coordinates. Search works without device location permission; applying a simulation requires administrator approval.
+
 ## Features
 
 - **Full dates, everywhere.** Every region shows the year, month, day and weekday. Previous-day and next-day labels make date changes clear.

@@ -14,15 +14,24 @@ for TARGET_ARCH in $MERIDIAN_ARCHITECTURES; do
     -Xlinker -rpath -Xlinker '@executable_path/../Frameworks' \
     "$PROJECT_DIR"/Sources/*.swift -o "$BUILD_DIR/Meridian-$TARGET_ARCH" \
     -framework AppKit -framework SwiftUI -framework Combine -framework Sparkle
+  swiftc -O -swift-version 5 -parse-as-library -target "$TARGET_ARCH-apple-macos14.0" \
+    -module-cache-path "$BUILD_DIR/ModuleCache" \
+    "$PROJECT_DIR/Sources/MacLocationModel.swift" "$PROJECT_DIR/Helpers/LocationEngine.swift" \
+    "$PROJECT_DIR/Helpers/MeridianLocationHelper.swift" -o "$BUILD_DIR/MeridianLocationHelper-$TARGET_ARCH"
 done
 if (( ${#MERIDIAN_ARCHITECTURES} == 1 )); then
   cp "$BUILD_DIR/Meridian-${MERIDIAN_ARCHITECTURES[1]}" "$APP_DIR/Contents/MacOS/Meridian"
+  cp "$BUILD_DIR/MeridianLocationHelper-${MERIDIAN_ARCHITECTURES[1]}" "$APP_DIR/Contents/MacOS/MeridianLocationHelper"
 else
   BINARIES=()
   for TARGET_ARCH in $MERIDIAN_ARCHITECTURES; do BINARIES+=("$BUILD_DIR/Meridian-$TARGET_ARCH"); done
   lipo -create $BINARIES -output "$APP_DIR/Contents/MacOS/Meridian"
+  HELPERS=()
+  for TARGET_ARCH in $MERIDIAN_ARCHITECTURES; do HELPERS+=("$BUILD_DIR/MeridianLocationHelper-$TARGET_ARCH"); done
+  lipo -create $HELPERS -output "$APP_DIR/Contents/MacOS/MeridianLocationHelper"
 fi
 ditto "$BUILD_DIR/Sparkle/Sparkle.framework" "$APP_DIR/Contents/Frameworks/Sparkle.framework"
+cp "$PROJECT_DIR/ThirdParty/MacLocation-LICENSE.txt" "$APP_DIR/Contents/Resources/MacLocation-LICENSE.txt"
 cp "$PROJECT_DIR/ThirdParty/Sparkle-LICENSE.txt" "$APP_DIR/Contents/Resources/Sparkle-LICENSE.txt"
 cp "$PROJECT_DIR/ThirdParty/CLDR/LICENSE" "$APP_DIR/Contents/Resources/CLDR-LICENSE.txt"
 cp "$PROJECT_DIR/ThirdParty/TimeZones/LICENSE" "$APP_DIR/Contents/Resources/TimeZones-LICENSE.txt"
@@ -38,8 +47,10 @@ while IFS= read -r BUNDLE; do
 done < <(find "$APP_DIR/Contents/Frameworks/Sparkle.framework" -depth \( -name '*.xpc' -o -name '*.app' \) -print)
 codesign --force --options runtime --timestamp=none --sign "$IDENTITY" "$APP_DIR/Contents/Frameworks/Sparkle.framework"
 if [[ "$IDENTITY" == '-' ]]; then
+  codesign --force --sign - "$APP_DIR/Contents/MacOS/MeridianLocationHelper"
   codesign --force --sign - "$APP_DIR"
 else
+  codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP_DIR/Contents/MacOS/MeridianLocationHelper"
   codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP_DIR"
 fi
 codesign --verify --deep --strict "$APP_DIR"
