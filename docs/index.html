@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Meridian — Your world. At a glance.</title>
-  <meta name="description" content="World clocks, full dates and local weather, on your Mac desktop and menu bar. English and Simplified Chinese.">
+  <meta name="description" content="World clocks, full dates and weather for Mac. Explore the experimental Mac Location preview with worldwide city search, location verification and restore. English and Simplified Chinese.">
   <meta property="og:title" content="Meridian — Your world. At a glance.">
-  <meta property="og:description" content="World clocks. Full dates. Local weather. Built for macOS.">
+  <meta property="og:description" content="World clocks, full dates and weather. Now preview Mac Location: search a city, simulate, verify and restore.">
   <meta property="og:type" content="website"><meta property="og:url" content="https://etongle.github.io/Meridian/">
   <meta property="og:image" content="https://etongle.github.io/Meridian/assets/promo-en.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -15,7 +15,7 @@
 </head>
 <body>
 <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
-<header class="nav wrap"><a class="wordmark" href="#" aria-label="Meridian home"><img src="assets/app-icon.png" alt="" width="42" height="42">Meridian</a><nav aria-label="Main navigation"><a href="#features" data-i18n="featuresNav">Features</a><a href="https://github.com/etongle/Meridian">GitHub</a><button id="language" type="button" aria-label="Switch to Simplified Chinese">中文</button></nav></header>
+<header class="nav wrap"><a class="wordmark" href="#" aria-label="Meridian home"><img src="assets/app-icon.png" alt="" width="42" height="42">Meridian</a><nav aria-label="Main navigation"><a href="#features" data-i18n="featuresNav">Features</a><a href="#mac-location" data-i18n="locationNav">Mac Location</a><a class="github-nav" href="https://github.com/etongle/Meridian">GitHub</a><button id="language" type="button" aria-label="Switch to Simplified Chinese">中文</button></nav></header>
 <main id="main">
 <section class="hero wrap">
   <p class="eyebrow" data-i18n="eyebrow">A QUIETER WAY TO KEEP TIME</p>
@@ -23,6 +23,7 @@
   <p class="intro" data-i18n="intro">World clocks, full dates and local weather.<br>A quiet companion for your Mac.</p>
   <div class="actions"><a class="button primary download-link" href="https://github.com/etongle/Meridian/releases" data-i18n="download">View releases</a><a class="button secondary" href="https://github.com/etongle/Meridian" data-i18n="source">Explore on GitHub</a></div>
   <p class="requirements" data-i18n="requirements">macOS 14+ · Apple Silicon & Intel · English & 简体中文</p>
+  <a class="preview-link" href="#mac-location" data-i18n="heroPreview">New in preview · Mac Location ↗</a>
   <figure class="product"><img src="assets/widget.png" width="720" height="210" alt="Meridian desktop widget showing New York, London, Shanghai and Tokyo with full dates and weather"><figcaption data-i18n="caption">Four places. One moment. Example time and weather.</figcaption></figure>
 </section>
 <section id="features" class="features wrap">
@@ -31,15 +32,35 @@
   <article><p class="number">03 / <span data-i18n="feature3Tag">A LITTLE MORE CONTEXT</span></p><h2 data-i18n="feature3Title">Know the weather, too.</h2><p data-i18n="feature3">Current city weather and Celsius temperatures sit alongside the time. Weather refreshes every 15 minutes.</p></article>
 </section>
 <section class="story wrap"><div><p class="eyebrow" data-i18n="storyTag">MADE TO STAY OUT OF YOUR WAY</p><h2 data-i18n="storyTitle">A home on your desktop.<br>A place in your menu bar.</h2><p data-i18n="storyBody">Keep a horizontal strip, a vertical stack or separate clocks on your desktop. Full dates and times stay close, with all your regions one click away.</p><p data-i18n="storyBody2">Choose a layout from the title bar. Drag each clock to move it; release near a screen edge to snap. Positions are saved automatically. Choose Open in the menu bar to restore all clocks; close any clock to send it back to the menu bar.</p><a class="text-link" href="https://github.com/etongle/Meridian#getting-started" data-i18n="gettingStarted">Get to know Meridian</a></div><figure class="detail"><img src="assets/widget-popover.png" alt="Meridian menu bar panel with full dates, times and weather" loading="lazy" width="286" height="504"><figcaption data-i18n="detailCaption">Everything you need. Nothing to hunt for.</figcaption></figure></section>
+<section id="mac-location" class="location wrap" aria-labelledby="location-heading">
+  <div class="location-copy">
+    <p class="eyebrow" data-i18n="locationTag">MAC LOCATION · EXPERIMENTAL PREVIEW</p>
+    <h2 id="location-heading" data-i18n="locationTitle">Choose a place.<br>Let your Mac follow.</h2>
+    <p class="location-intro" data-i18n="locationIntro">Simulate a selected region on this Mac for apps that use macOS Location Services.</p>
+    <p class="location-availability" data-i18n="locationAvailability">Available in the v1.5.0 experimental preview. Current stable download: <span class="stable-version">v1.4.0</span>.</p>
+    <ol class="location-steps">
+      <li><h3 data-i18n="locationSearchTitle">Find your city.</h3><p data-i18n="locationSearchBody">Enter a city, state/province and country, then press Return or choose Search location. Review the named candidates, or enter coordinates manually.</p><code>Cupertino, CA - United States</code></li>
+      <li><h3 data-i18n="locationApplyTitle">Apply with your approval.</h3><p data-i18n="locationApplyBody">Select a candidate and check its coordinates before applying. macOS asks for one-time administrator authorization.</p></li>
+      <li><h3 data-i18n="locationVerifyTitle">Check what your Mac reports.</h3><p data-i18n="locationVerifyBody">Choose Verify system location for a fresh Core Location check. Then refresh your location in the app you want to test.</p></li>
+      <li><h3 data-i18n="locationRestoreTitle">Restore when you're done.</h3><p data-i18n="locationRestoreBody">Use Restore original location to return to your saved settings. Quitting offers Restore and quit, Keep and quit, or Cancel.</p></li>
+    </ol>
+    <div class="location-actions"><a class="button secondary" href="https://github.com/etongle/Meridian/tree/feature/mac-location" data-i18n="locationPreviewCTA">Explore the preview</a><a class="text-link" href="https://github.com/etongle/Meridian/blob/feature/mac-location/docs/mac-location.md" data-i18n="locationGuideCTA">Setup & recovery</a></div>
+    <p class="location-note" data-i18n="locationNote">Tested on macOS 27.0.1. This experimental macOS integration can behave differently across system versions and apps.</p>
+  </div>
+  <figure class="location-preview"><img id="location-image" src="assets/mac-location-preview.jpg" alt="Actual Meridian preview in Chinese, showing the Cupertino, California, United States query and selected coordinates" width="1200" height="1624" loading="lazy"><figcaption data-i18n="locationCaption">Actual preview, Chinese interface. Search and select before applying.</figcaption></figure>
+</section>
 <section class="campaign wrap"><img id="campaign-image" src="assets/promo-en.png" alt="Meridian launch artwork: your world at a glance" loading="lazy" width="1672" height="941"></section>
 <section class="faq wrap"><p class="eyebrow" data-i18n="faqTag">A FEW GOOD QUESTIONS</p><h2 data-i18n="faqTitle">Small details. Thought through.</h2>
 <details><summary data-i18n="q1">Which languages are supported?</summary><p data-i18n="a1">English is the default. Switch to Simplified Chinese in Settings without restarting the app.</p></details>
-<details><summary data-i18n="q2">Does weather use my device location?</summary><p data-i18n="a2">No location permission is requested. Weather comes from Open-Meteo for each clock’s city. The local clock uses the city represented by your system time zone.</p></details>
+<details><summary data-i18n="q2">Does weather use my device location?</summary><p data-i18n="a2">Weather uses Open-Meteo for each clock’s city without requesting device location. The local clock follows your system time zone. The separate Mac Location preview requests location permission when you choose Verify system location.</p></details>
 <details><summary data-i18n="q3">Does Meridian support automatic updates?</summary><p data-i18n="a3">Sparkle powers automatic update checks and optional background downloads. Release archives are signed and verified before installation.</p></details>
 <details><summary data-i18n="q4">What if the weather is unavailable?</summary><p data-i18n="a4">Your clocks keep running. Meridian labels unavailable or outdated weather clearly, and you can turn weather off at any time.</p></details>
 <details><summary data-i18n="q5">Can I use Meridian commercially?</summary><p data-i18n="a5">Meridian is available under PolyForm Noncommercial 1.0.0. Permitted noncommercial use, modification and redistribution are allowed under the license. Commercial use is not granted.</p></details>
+<details><summary data-i18n="q6">What can I enter in Mac Location search?</summary><p data-i18n="a6">Try Cupertino, CA - United States or Toronto, Ontario - Canada. City, state/province and country help distinguish similar place names. Online city search sends your query to Open-Meteo, using GeoNames data, and works with device Location Services turned off. You can also enter decimal latitude and longitude manually.</p></details>
+<details><summary data-i18n="q7">Will every app show the selected location?</summary><p data-i18n="a7">Apps that use macOS Core Location can receive the simulated region. Apps that use your IP address, account region or cached data may show something different. Mac Location does not change your IP address or account country.</p></details>
+<details><summary data-i18n="q8">Does quitting stop the location simulation?</summary><p data-i18n="a8">Simulation can continue after quitting or restarting. Choose Restore original location, or Restore and quit, to end it and restore the original simulation settings. macOS may ask for administrator authorization again.</p></details>
 </section>
 <section class="closing wrap"><img src="assets/app-icon.png" width="96" height="96" alt="Meridian app icon" loading="lazy"><h2 data-i18n="closing">Keep the world close.</h2><a class="button primary download-link" href="https://github.com/etongle/Meridian/releases" data-i18n="download">View releases</a></section>
 </main>
-<footer class="wrap"><span>Meridian</span><p data-i18n="footer">A quieter corner of your Mac.</p><a href="https://github.com/etongle/Meridian" data-i18n="footerSource">Source & releases</a><a href="https://github.com/etongle/Meridian/blob/main/LICENSE" data-i18n="license">Noncommercial license</a><a href="https://open-meteo.com/" data-i18n="weatherCredit">Weather by Open-Meteo</a></footer>
+<footer class="wrap"><span>Meridian</span><p data-i18n="footer">A quieter corner of your Mac.</p><a href="https://github.com/etongle/Meridian" data-i18n="footerSource">Source & releases</a><a href="https://github.com/etongle/Meridian/blob/main/LICENSE" data-i18n="license">Noncommercial license</a><a href="https://open-meteo.com/" data-i18n="weatherCredit">Weather by Open-Meteo</a><a href="https://open-meteo.com/en/docs/geocoding-api" data-i18n="cityCredit">City search · GeoNames / Open-Meteo</a></footer>
 </body></html>
